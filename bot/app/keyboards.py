@@ -1,0 +1,103 @@
+from aiogram.types import (
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+
+def menu_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="1. Murojaat yuborish")],
+            [KeyboardButton(text="2. Murojaatlarim")],
+            [KeyboardButton(text="3. Murojaatlarim hal qilindi")],
+            [KeyboardButton(text="4. Ishlatish bo‘yicha qo‘llanma")],
+        ],
+        resize_keyboard=True,
+    )
+
+
+def cancel_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="❌ Bekor qilish")]],
+        resize_keyboard=True,
+    )
+
+
+def media_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="✅ Joylashuv yuborish")],
+            [KeyboardButton(text="❌ Bekor qilish")],
+        ],
+        resize_keyboard=True,
+    )
+
+
+def location_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📍 Joylashuvni yuborish", request_location=True)],
+            [KeyboardButton(text="❌ Bekor qilish")],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+def confirm_kb() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="✅ Ha, tanishib chiqdim roziman")],
+            [KeyboardButton(text="❌ Bekor qilish")],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+# ------------ Inline browse keyboards ------------
+
+def reports_nav_kb(has_prev: bool, has_next: bool, can_resolve: bool) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+
+    if has_prev:
+        b.button(text="⬅️", callback_data="repnav:prev")
+
+    b.button(text="📎 Fayllar", callback_data="repnav:files")
+
+    if has_next:
+        b.button(text="➡️", callback_data="repnav:next")
+
+    b.adjust(3)
+
+    if can_resolve:
+        b.row(InlineKeyboardButton(text="✅ Hal bo‘ldi", callback_data="repnav:resolve"))
+
+    b.row(InlineKeyboardButton(text="🔙 Menyuga", callback_data="repnav:menu"))
+    return b.as_markup()
+
+
+def resolve_confirm_kb() -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    b.button(text="✅ Tasdiqlayman", callback_data="represolve:yes")
+    b.button(text="❌ Bekor", callback_data="represolve:no")
+    b.adjust(2)
+    return b.as_markup()
+
+
+def files_list_kb(attachments_count: int) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+
+    for i in range(attachments_count):
+        b.button(text=f"📎 {i+1}", callback_data=f"repfile:{i}")
+
+    b.adjust(4)
+
+    b.row(
+        InlineKeyboardButton(text="📤 Hammasini yuborish", callback_data="repfile:all"),
+        InlineKeyboardButton(text="⬅️ Ortga", callback_data="repfile:back"),
+    )
+    return b.as_markup()
