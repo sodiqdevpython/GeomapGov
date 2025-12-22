@@ -45,7 +45,8 @@ INSTALLED_APPS = [
 
     #local
     'users',
-    'reports'
+    'reports',
+    'organizations'
 ]
 
 REST_FRAMEWORK ={
