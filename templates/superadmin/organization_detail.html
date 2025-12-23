@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ org.name }} | Tashkilot{% endblock %}
+{% block breadcrumb %}Tashkilot detail{% endblock %}
+{% block page_title %}{{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-4 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          {% if org.organization_icon %}
+            <img src="{{ org.organization_icon.url }}" class="avatar avatar-xl me-3" alt="org-icon">
+          {% else %}
+            <img src="{% static 'assets/img/team-2.jpg' %}" class="avatar avatar-xl me-3" alt="org-icon">
+          {% endif %}
+
+          <div>
+            <h5 class="mb-0">{{ org.name }}</h5>
+            <p class="text-sm text-muted mb-0">
+              {% if org.is_active %}Faol{% else %}Nofaol{% endif %}
+            </p>
+          </div>
+        </div>
+
+        <hr>
+
+        <p class="text-sm mb-1"><b>Tavsif:</b></p>
+        <p class="text-sm text-secondary mb-3">{{ org.description|default:"-" }}</p>
+
+        <p class="text-sm mb-1"><b>Yaratilgan:</b></p>
+        <p class="text-sm text-secondary mb-0">
+          {{ org.created_at|date:"d/m/Y" }} {{ org.created_at|time:"H:i" }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8 mb-4">
+    <div class="card">
+      <div class="card-header pb-0">
+        <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
+          <div>
+            <h6 class="mb-0">A’zolar</h6>
+            <p class="text-sm mb-0 text-muted">Tashkilot a’zolari ro‘yxati</p>
+          </div>
+
+          <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" name="mq" value="{{ mq }}" placeholder="username/email qidirish...">
+            </div>
+
+            <select class="form-select" name="role" style="min-width: 160px;">
+              <option value="">Barcha rollar</option>
+              {% for key, label in role_choices %}
+                <option value="{{ key }}" {% if role == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+
+            <button class="btn btn-primary mb-0" type="submit">
+              <i class="fa fa-filter me-1"></i> Filter
+            </button>
+
+            {% if mq or role %}
+              <a class="btn btn-outline-secondary mb-0" href="{% url 'dashboard:organization_detail' org.id %}">Tozalash</a>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+      <div class="card-body px-0 pt-0 pb-2">
+        <div class="table-responsive p-0">
+          <table class="table align-items-center mb-0">
+            <thead>
+              <tr>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">User</th>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Role</th>
+                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Joined</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for m in members_page.object_list %}
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex flex-column">
+                    <h6 class="mb-0 text-sm">{{ m.user.username }}</h6>
+                    <p class="text-xs text-secondary mb-0">{{ m.user.email|default:"-" }}</p>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="text-sm font-weight-bold">{{ m.get_role_display }}</span>
+                </td>
+
+                <td class="align-middle text-center">
+                  <span class="text-secondary text-xs font-weight-bold">
+                    {{ m.joined_at|date:"d/m/Y" }} {{ m.joined_at|time:"H:i" }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center py-4">
+                  <span class="text-muted">A’zo topilmadi.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination (members) -->
+        <div class="px-4 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+          <div class="text-sm text-secondary">
+            Sahifa: <b>{{ members_page.number }}</b> / <b>{{ members_page.paginator.num_pages }}</b>
+            — Jami: <b>{{ members_page.paginator.count }}</b>
+          </div>
+
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+
+              {% if members_page.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1&mq={{ mq }}&role={{ role }}">«</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ members_page.previous_page_number }}&mq={{ mq }}&role={{ role }}">‹</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">«</span></li>
+                <li class="page-item disabled"><span class="page-link">‹</span></li>
+              {% endif %}
+
+              {% for p in members_page.paginator.page_range %}
+                {% if p >= members_page.number|add:-2 and p <= members_page.number|add:2 %}
+                  <li class="page-item {% if p == members_page.number %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}&mq={{ mq }}&role={{ role }}">{{ p }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if members_page.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ members_page.next_page_number }}&mq={{ mq }}&role={{ role }}">›</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ members_page.paginator.num_pages }}&mq={{ mq }}&role={{ role }}">»</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">›</span></li>
+                <li class="page-item disabled"><span class="page-link">»</span></li>
+              {% endif %}
+
+            </ul>
+          </nav>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

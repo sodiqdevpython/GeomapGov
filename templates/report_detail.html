@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}Shikoyat #{{ report.id }}{% endblock %}
+{% block breadcrumb %}Shikoyat detail{% endblock %}
+{% block page_title %}Shikoyat #{{ report.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+
+  <!-- LEFT: main info + attachments -->
+  <div class="col-lg-4 mb-4">
+
+    <div class="card">
+      <div class="card-body">
+        <h6 class="mb-3">Asosiy ma’lumot</h6>
+
+        <p class="text-sm mb-1"><b>Status:</b></p>
+        <!-- ✅ O'zbekcha chiqishi uchun -->
+        <span class="badge bg-gradient-secondary">{{ report.get_status_uz }}</span>
+
+        <hr>
+
+        <p class="text-sm mb-1"><b>Tashkilot:</b></p>
+        <p class="text-sm text-secondary mb-2">
+          {% if report.organization %}{{ report.organization.name }}{% else %}-{% endif %}
+        </p>
+
+        <p class="text-sm mb-1"><b>Yuborgan:</b></p>
+        <p class="text-sm text-secondary mb-2">
+          {{ report.user.username }}
+          {% if report.user.email %} — {{ report.user.email }}{% endif %}
+        </p>
+
+        <p class="text-sm mb-1"><b>Telefon:</b></p>
+        <p class="text-sm text-secondary mb-2">
+          {% if phone %}{{ phone }}{% else %}-{% endif %}
+        </p>
+
+        <p class="text-sm mb-1"><b>Tavsif:</b></p>
+        <p class="text-sm text-secondary mb-2">{{ report.description }}</p>
+
+        <p class="text-sm mb-1"><b>Yaratilgan:</b></p>
+        <p class="text-sm text-secondary mb-0">
+          {{ report.created_at|date:"d/m/Y" }} {{ report.created_at|time:"H:i" }}
+        </p>
+
+        {% if report.resolved_at %}
+          <p class="text-sm mb-1 mt-3"><b>Hal qilingan:</b></p>
+          <p class="text-sm text-secondary mb-0">
+            {{ report.resolved_at|date:"d/m/Y" }} {{ report.resolved_at|time:"H:i" }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h6 class="mb-3">Fayllar</h6>
+
+        {% for a in report.attachments.all %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="me-2">
+              <p class="text-sm mb-0 font-weight-bold">
+                {{ a.original_name|default:"file" }}
+              </p>
+              <p class="text-xs text-secondary mb-0">
+                {{ a.mime_type|default:"-" }}
+              </p>
+            </div>
+            <a class="btn btn-sm btn-outline-primary mb-0" href="{{ a.file.url }}" target="_blank">
+              Ochish
+            </a>
+          </div>
+        {% empty %}
+          <p class="text-sm text-secondary mb-0">Fayl yo‘q.</p>
+        {% endfor %}
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- RIGHT: map + read history -->
+  <div class="col-lg-8 mb-4">
+
+    <div class="card">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Manzil</h6>
+        <p class="text-sm mb-0 text-muted">Xaritada ko‘rinishi</p>
+      </div>
+
+      <div class="card-body">
+        <!-- ✅ 100% ishlaydigan xarita: Google Maps iframe -->
+        <div style="height: 420px; border-radius: 12px; overflow: hidden;">
+          <iframe
+            width="100%"
+            height="420"
+            style="border:0;"
+            loading="lazy"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}&z=16&output=embed">
+          </iframe>
+        </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-3 gap-2">
+
+          <a class="btn btn-sm btn-outline-secondary mb-0"
+             href="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}"
+             target="_blank">
+            Google Maps’da ochish
+          </a>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card mt-4">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">O‘qish tarixi</h6>
+        <p class="text-sm mb-0 text-muted">Tashkilot qachon ochgan</p>
+      </div>
+
+      <div class="card-body">
+        <ul class="list-group">
+          {% for rr in report.reads.all %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <b>{{ rr.organization.name }}</b>
+                {% if rr.read_by %} — {{ rr.read_by.username }}{% endif %}
+              </span>
+              <span class="text-xs text-secondary">
+                {{ rr.read_at|date:"d/m/Y" }} {{ rr.read_at|time:"H:i" }}
+              </span>
+            </li>
+          {% empty %}
+            <li class="list-group-item">
+              <span class="text-sm text-muted">Hozircha o‘qish tarixi yo‘q.</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

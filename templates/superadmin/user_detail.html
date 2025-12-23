@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ u.username }} | User{% endblock %}
+{% block breadcrumb %}User detail{% endblock %}
+{% block page_title %}{{ u.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-4 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <img src="{% static 'img/logo.png' %}" class="avatar avatar-xl me-3" alt="user">
+          <div>
+            <h5 class="mb-0">{{ u.username }}</h5>
+            <p class="text-sm text-muted mb-0">{{ u.first_name }} {{ u.last_name }}</p>
+          </div>
+        </div>
+
+        <hr>
+
+        <p class="text-sm mb-1"><b>Faol:</b></p>
+        <p class="text-sm text-secondary mb-3">{% if u.is_active %}Ha{% else %}Yo‘q{% endif %}</p>
+
+        <p class="text-sm mb-1"><b>Foydalanuvchi turi:</b></p>
+        <p class="text-sm text-secondary mb-3">
+          {% if u.is_superuser %}Superadmin{% elif u.is_staff %}Admin{% else %}User{% endif %}
+        </p>
+
+        <p class="text-sm mb-1"><b>Ro‘yxatdan o‘tgan:</b></p>
+        <p class="text-sm text-secondary mb-0">
+          {{ u.date_joined|date:"d/m/Y" }} {{ u.date_joined|time:"H:i" }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8 mb-4">
+    <div class="card">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Tashkilotlardagi a’zoliklari</h6>
+        <p class="text-sm mb-0 text-muted">Foydalanuvchi qaysi tashkilotlarda ekanligi</p>
+      </div>
+
+      <div class="card-body px-0 pt-0 pb-2">
+        <div class="table-responsive p-0">
+          <table class="table align-items-center mb-0">
+            <thead>
+              <tr>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Tashkilot</th>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Turi</th>
+                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ro'yxatdan o'tgan</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for m in memberships %}
+              <tr>
+                <td class="ps-4">
+                  <h6 class="mb-0 text-sm">{{ m.organization.name }}</h6>
+                  <p class="text-xs text-secondary mb-0">{{ m.organization.description|default:"-"|truncatechars:70 }}</p>
+                </td>
+
+                <td>
+                  <span class="text-sm font-weight-bold">{{ m.get_role_display }}</span>
+                </td>
+
+                <td class="align-middle text-center">
+                  <span class="text-secondary text-xs font-weight-bold">
+                    {{ m.joined_at|date:"d/m/Y" }} {{ m.joined_at|time:"H:i" }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center py-4">
+                  <span class="text-muted">Bu foydalanuvchi hech qaysi tashkilotga biriktirilmagan.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
