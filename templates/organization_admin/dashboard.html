@@ -1,468 +1,766 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}Dashboard | GeomapGov{% endblock %}
-{% block breadcrumb %}Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-
+{% extends "base.html" %} {% load static %} {% block title %}Organization Admin
+| GeomapGov{% endblock %} {% block breadcrumb %}Boshqaruv paneli{% endblock %}
 {% block content %}
 
-<div class="row">
-  <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+<style>
+  .muted {
+    color: #8898aa;
+  }
+  .section-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .section-title h6 {
+    margin: 0;
+  }
+  .section-title .hint {
+    font-size: 12px;
+    color: #8898aa;
+  }
+
+  .kpi-row .card {
+    height: 150px;
+  }
+  .kpi-row .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .kpi-title {
+    letter-spacing: 0.04em;
+  }
+
+  .chipbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .chip .x {
+    cursor: pointer;
+    color: #8898aa;
+  }
+
+  #map {
+    height: 720px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .form-check-input {
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer;
+    margin-top: 0 !important;
+  }
+
+  .map-header {
+    padding: 16px 18px !important;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .map-header .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+    justify-content: flex-end;
+  }
+  .map-header .filters .field {
+    min-width: 190px;
+  }
+  .map-header .filters .field.search {
+    min-width: 320px;
+    flex: 1 1 360px;
+  }
+  .map-header .filters .actions {
+    display: flex;
+    gap: 10px;
+  }
+  .map-header .chipbar {
+    margin-top: 10px;
+    align-items: center;
+  }
+  .map-header .chip {
+    background: #f7fafc;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .map-header .chip.ms-auto {
+    margin-left: auto !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 12px 14px;
+  }
+  .popup-card {
+    min-width: 360px;
+  }
+  .popup-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 6px 0 2px 0;
+  }
+  .popup-kv {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .popup-kv .k {
+    color: #8898aa;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .popup-kv .v {
+    font-weight: 600;
+  }
+  .popup-desc {
+    font-size: 13px;
+    color: #525f7f;
+    line-height: 1.35;
+    margin: 8px 0 10px 0;
+  }
+
+  @media (max-width: 992px) {
+    #map {
+      height: 560px;
+    }
+    .popup-card {
+      min-width: 300px;
+    }
+  }
+</style>
+
+<!-- ===================== KPI ROW ===================== -->
+<div class="row kpi-row mb-4">
+  <div class="col-xl-3 col-sm-6 mb-3">
     <div class="card">
-      <div class="card-body p-3">
-        <div class="row">
-          <div class="col-8">
-            <div class="numbers">
-              <p class="text-sm mb-0 text-uppercase font-weight-bold">Today's Money</p>
-              <h5 class="font-weight-bolder">$53,000</h5>
-              <p class="mb-0">
-                <span class="text-success text-sm font-weight-bolder">+55%</span>
-                since yesterday
-              </p>
-            </div>
-          </div>
-          <div class="col-4 text-end">
-            <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-              <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-    <div class="card">
-      <div class="card-body p-3">
-        <div class="row">
-          <div class="col-8">
-            <div class="numbers">
-              <p class="text-sm mb-0 text-uppercase font-weight-bold">Today's Users</p>
-              <h5 class="font-weight-bolder">2,300</h5>
-              <p class="mb-0">
-                <span class="text-success text-sm font-weight-bolder">+3%</span>
-                since last week
-              </p>
-            </div>
-          </div>
-          <div class="col-4 text-end">
-            <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-              <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-    <div class="card">
-      <div class="card-body p-3">
-        <div class="row">
-          <div class="col-8">
-            <div class="numbers">
-              <p class="text-sm mb-0 text-uppercase font-weight-bold">New Clients</p>
-              <h5 class="font-weight-bolder">+3,462</h5>
-              <p class="mb-0">
-                <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                since last quarter
-              </p>
-            </div>
-          </div>
-          <div class="col-4 text-end">
-            <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-              <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-xl-3 col-sm-6">
-    <div class="card">
-      <div class="card-body p-3">
-        <div class="row">
-          <div class="col-8">
-            <div class="numbers">
-              <p class="text-sm mb-0 text-uppercase font-weight-bold">Sales</p>
-              <h5 class="font-weight-bolder">$103,430</h5>
-              <p class="mb-0">
-                <span class="text-success text-sm font-weight-bolder">+5%</span>
-                than last month
-              </p>
-            </div>
-          </div>
-          <div class="col-4 text-end">
-            <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-              <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row mt-4">
-  <div class="col-lg-7 mb-lg-0 mb-4">
-    <div class="card z-index-2 h-100">
-      <div class="card-header pb-0 pt-3 bg-transparent">
-        <h6 class="text-capitalize">Sales overview</h6>
-        <p class="text-sm mb-0">
-          <i class="fa fa-arrow-up text-success"></i>
-          <span class="font-weight-bold">4% more</span> in 2021
-        </p>
-      </div>
-      <div class="card-body p-3">
-        <div class="chart">
-          <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-5">
-    <div class="card card-carousel overflow-hidden h-100 p-0">
-      <div id="carouselExampleCaptions" class="carousel slide h-100" data-bs-ride="carousel">
-        <div class="carousel-inner border-radius-lg h-100">
-          <div class="carousel-item h-100 active"
-               style="background-image: url('{% static 'img/carousel-1.jpg' %}'); background-size: cover;">
-            <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-              <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                <i class="ni ni-camera-compact text-dark opacity-10"></i>
-              </div>
-              <h5 class="text-white mb-1">Get started with GeomapGov</h5>
-              <p>Muammolarni boshqarish va kuzatish uchun admin panel.</p>
-            </div>
-          </div>
-
-          <div class="carousel-item h-100"
-               style="background-image: url('{% static 'img/carousel-2.jpg' %}'); background-size: cover;">
-            <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-              <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                <i class="ni ni-bulb-61 text-dark opacity-10"></i>
-              </div>
-              <h5 class="text-white mb-1">Faster management</h5>
-              <p>Yangi reportlar, statuslar, tashkilotlar — hammasi bir joyda.</p>
-            </div>
-          </div>
-
-          <div class="carousel-item h-100"
-               style="background-image: url('{% static 'img/carousel-3.jpg' %}'); background-size: cover;">
-            <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-              <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                <i class="ni ni-trophy text-dark opacity-10"></i>
-              </div>
-              <h5 class="text-white mb-1">Track progress</h5>
-              <p>Qaysi report qachon o‘qildi, kimga biriktirildi — hammasi logda.</p>
-            </div>
-          </div>
-        </div>
-
-        <button class="carousel-control-prev w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
-
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row mt-4">
-  <div class="col-lg-7 mb-lg-0 mb-4">
-    <div class="card">
-      <div class="card-header pb-0 p-3">
+      <div class="card-body">
         <div class="d-flex justify-content-between">
-          <h6 class="mb-2">Sales by Country</h6>
+          <div>
+            <div
+              class="text-xs text-uppercase font-weight-bold muted kpi-title"
+            >
+              Jami shikoyatlar
+            </div>
+            <div class="h3 font-weight-bolder mb-0">{{ total_count }}</div>
+            <div class="text-xs muted mt-1">Faqat: <b>{{ org.name }}</b></div>
+          </div>
+          <div
+            class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
+          >
+            <i class="ni ni-collection text-lg opacity-10"></i>
+          </div>
         </div>
-      </div>
-      <div class="table-responsive">
-        <table class="table align-items-center">
-          <tbody>
-            <tr>
-              <td class="w-30">
-                <div class="d-flex px-2 py-1 align-items-center">
-                  <div>
-                    <img src="{% static 'img/icons/flags/US.png' %}" alt="Country flag">
-                  </div>
-                  <div class="ms-4">
-                    <p class="text-xs font-weight-bold mb-0">Country:</p>
-                    <h6 class="text-sm mb-0">United States</h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Sales:</p>
-                  <h6 class="text-sm mb-0">2500</h6>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Value:</p>
-                  <h6 class="text-sm mb-0">$230,900</h6>
-                </div>
-              </td>
-              <td class="align-middle text-sm">
-                <div class="col text-center">
-                  <p class="text-xs font-weight-bold mb-0">Bounce:</p>
-                  <h6 class="text-sm mb-0">29.9%</h6>
-                </div>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="w-30">
-                <div class="d-flex px-2 py-1 align-items-center">
-                  <div>
-                    <img src="{% static 'img/icons/flags/DE.png' %}" alt="Country flag">
-                  </div>
-                  <div class="ms-4">
-                    <p class="text-xs font-weight-bold mb-0">Country:</p>
-                    <h6 class="text-sm mb-0">Germany</h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Sales:</p>
-                  <h6 class="text-sm mb-0">3.900</h6>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Value:</p>
-                  <h6 class="text-sm mb-0">$440,000</h6>
-                </div>
-              </td>
-              <td class="align-middle text-sm">
-                <div class="col text-center">
-                  <p class="text-xs font-weight-bold mb-0">Bounce:</p>
-                  <h6 class="text-sm mb-0">40.22%</h6>
-                </div>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="w-30">
-                <div class="d-flex px-2 py-1 align-items-center">
-                  <div>
-                    <img src="{% static 'img/icons/flags/GB.png' %}" alt="Country flag">
-                  </div>
-                  <div class="ms-4">
-                    <p class="text-xs font-weight-bold mb-0">Country:</p>
-                    <h6 class="text-sm mb-0">Great Britain</h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Sales:</p>
-                  <h6 class="text-sm mb-0">1.400</h6>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Value:</p>
-                  <h6 class="text-sm mb-0">$190,700</h6>
-                </div>
-              </td>
-              <td class="align-middle text-sm">
-                <div class="col text-center">
-                  <p class="text-xs font-weight-bold mb-0">Bounce:</p>
-                  <h6 class="text-sm mb-0">23.44%</h6>
-                </div>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="w-30">
-                <div class="d-flex px-2 py-1 align-items-center">
-                  <div>
-                    <img src="{% static 'img/icons/flags/BR.png' %}" alt="Country flag">
-                  </div>
-                  <div class="ms-4">
-                    <p class="text-xs font-weight-bold mb-0">Country:</p>
-                    <h6 class="text-sm mb-0">Brasil</h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Sales:</p>
-                  <h6 class="text-sm mb-0">562</h6>
-                </div>
-              </td>
-              <td>
-                <div class="text-center">
-                  <p class="text-xs font-weight-bold mb-0">Value:</p>
-                  <h6 class="text-sm mb-0">$143,960</h6>
-                </div>
-              </td>
-              <td class="align-middle text-sm">
-                <div class="col text-center">
-                  <p class="text-xs font-weight-bold mb-0">Bounce:</p>
-                  <h6 class="text-sm mb-0">32.14%</h6>
-                </div>
-              </td>
-            </tr>
-
-          </tbody>
-        </table>
+        <div class="d-flex justify-content-between mt-2 text-xs">
+          <span class="muted">Bugun</span
+          ><span class="font-weight-bold">{{ today_count }}</span>
+        </div>
+        <div class="d-flex justify-content-between text-xs">
+          <span class="muted">So‘nggi 7 kun</span
+          ><span class="font-weight-bold">{{ week_count }}</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-lg-5">
+  <div class="col-xl-3 col-sm-6 mb-3">
     <div class="card">
-      <div class="card-header pb-0 p-3">
-        <h6 class="mb-0">Categories</h6>
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div
+              class="text-xs text-uppercase font-weight-bold muted kpi-title"
+            >
+              Yangi
+            </div>
+            <div class="h3 font-weight-bolder mb-0">
+              {{ status_counts_global.new|default:0 }}
+            </div>
+          </div>
+          <div
+            class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
+          >
+            <i class="ni ni-bell-55 text-lg opacity-10"></i>
+          </div>
+        </div>
       </div>
-      <div class="card-body p-3">
-        <ul class="list-group">
-          <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
-            <div class="d-flex align-items-center">
-              <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
-                <i class="ni ni-mobile-button text-white opacity-10"></i>
-              </div>
-              <div class="d-flex flex-column">
-                <h6 class="mb-1 text-dark text-sm">Devices</h6>
-                <span class="text-xs">250 in stock, <span class="font-weight-bold">346+ sold</span></span>
-              </div>
-            </div>
-            <div class="d-flex">
-              <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                <i class="ni ni-bold-right" aria-hidden="true"></i>
-              </button>
-            </div>
-          </li>
+    </div>
+  </div>
 
-          <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
-            <div class="d-flex align-items-center">
-              <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
-                <i class="ni ni-tag text-white opacity-10"></i>
-              </div>
-              <div class="d-flex flex-column">
-                <h6 class="mb-1 text-dark text-sm">Tickets</h6>
-                <span class="text-xs">123 closed, <span class="font-weight-bold">15 open</span></span>
-              </div>
+  <div class="col-xl-3 col-sm-6 mb-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div
+              class="text-xs text-uppercase font-weight-bold muted kpi-title"
+            >
+              Jarayonda
             </div>
-            <div class="d-flex">
-              <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                <i class="ni ni-bold-right" aria-hidden="true"></i>
-              </button>
+            <div class="h3 font-weight-bolder mb-0">
+              {{ status_counts_global.in_progress|default:0 }}
             </div>
-          </li>
+          </div>
+          <div
+            class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
+          >
+            <i class="ni ni-settings text-lg opacity-10"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
-            <div class="d-flex align-items-center">
-              <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
-                <i class="ni ni-box-2 text-white opacity-10"></i>
-              </div>
-              <div class="d-flex flex-column">
-                <h6 class="mb-1 text-dark text-sm">Error logs</h6>
-                <span class="text-xs">1 is active, <span class="font-weight-bold">40 closed</span></span>
-              </div>
+  <div class="col-xl-3 col-sm-6 mb-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div
+              class="text-xs text-uppercase font-weight-bold muted kpi-title"
+            >
+              Hal qilingan
             </div>
-            <div class="d-flex">
-              <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                <i class="ni ni-bold-right" aria-hidden="true"></i>
-              </button>
+            <div class="h3 font-weight-bolder mb-0">
+              {{ status_counts_global.resolved|default:0 }}
             </div>
-          </li>
-
-          <li class="list-group-item border-0 d-flex justify-content-between ps-0 border-radius-lg">
-            <div class="d-flex align-items-center">
-              <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
-                <i class="ni ni-satisfied text-white opacity-10"></i>
-              </div>
-              <div class="d-flex flex-column">
-                <h6 class="mb-1 text-dark text-sm">Happy users</h6>
-                <span class="text-xs font-weight-bold">+ 430</span>
-              </div>
-            </div>
-            <div class="d-flex">
-              <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                <i class="ni ni-bold-right" aria-hidden="true"></i>
-              </button>
-            </div>
-          </li>
-
-        </ul>
+            <div class="text-xs muted mt-1">Yakunlangan</div>
+          </div>
+          <div
+            class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
+          >
+            <i class="ni ni-check-bold text-lg opacity-10"></i>
+          </div>
+        </div>
+        <div class="text-xs muted mt-2">Natija ko‘rsatkichi</div>
       </div>
     </div>
   </div>
 </div>
 
-{% endblock %}
+<!-- ===================== MAP SECTION ===================== -->
+<div class="card mb-4">
+  <div class="card-header map-header">
+    <div class="d-flex flex-column gap-2">
+      <div
+        class="d-flex flex-column flex-xl-row align-items-xl-end justify-content-between gap-3"
+      >
+        <form method="get" id="mapFilterForm" class="w-100">
+          <div class="filters">
+            <!-- ✅ Organization fixed -->
+            <div class="field">
+              <label class="form-label text-xs mb-1">Tashkilot</label>
+              <div
+                class="form-control form-control-sm"
+                style="background: #f7fafc"
+              >
+                <b>{{ org.name }}</b>
+              </div>
+            </div>
 
-{% block scripts %}
-<!-- chartjs faqat shu sahifaga kerak -->
+            <div class="field search">
+              <label class="form-label text-xs mb-1">Qidiruv</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"
+                  ><i class="fas fa-search"></i
+                ></span>
+                <input
+                  class="form-control"
+                  name="q"
+                  value="{{ q }}"
+                  placeholder="Matn / foydalanuvchi "
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="form-label text-xs mb-1">Status</label>
+              <div class="dropdown w-100">
+                <button
+                  class="btn btn-sm btn-outline-secondary w-100 mb-0"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  Status tanlash
+                </button>
+                <div
+                  class="dropdown-menu p-3"
+                  style="min-width: 260px; max-height: 320px; overflow: auto"
+                >
+                  {% for key,label in status_options %}
+                  <div class="form-check">
+                    <input
+                      class="form-check-input status-check"
+                      type="checkbox"
+                      value="{{ key }}"
+                      id="st_sel_{{ key }}"
+                      {%
+                      if
+                      not
+                      selected_statuses
+                      or
+                      key
+                      in
+                      selected_statuses
+                      %}checked{%
+                      endif
+                      %}
+                    />
+                    <label
+                      class="form-check-label text-sm"
+                      for="st_sel_{{ key }}"
+                      >{{ label }}</label
+                    >
+                  </div>
+                  {% endfor %}
+
+                  <hr class="horizontal dark my-2" />
+                  <div class="d-flex gap-2">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary mb-0 w-100"
+                      onclick="selectAllStatuses(true)"
+                    >
+                      Hammasi
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary mb-0 w-100"
+                      onclick="selectAllStatuses(false)"
+                    >
+                      Tozalash
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-sm btn-primary mb-0" type="submit">
+                <i class="fas fa-filter me-1"></i> Qo'llash
+              </button>
+              <a class="btn btn-sm btn-outline-secondary mb-0" href="">
+                Ortga qaytarish
+              </a>
+            </div>
+          </div>
+
+          <div class="chipbar">
+            <span class="chip"
+              ><span class="dot" style="background: #5e72e4"></span>
+              <b>{{ org.name }}</b></span
+            >
+
+            {% if q %}
+            <span class="chip"
+              ><span class="dot" style="background: #11cdef"></span> Qidiruv:
+              <b>{{ q }}</b></span
+            >
+            {% endif %} {% if selected_statuses %}
+            <span class="chip"
+              ><span class="dot" style="background: #fb6340"></span> Status:
+              <b>{{ selected_statuses|join:", " }}</b></span
+            >
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body pt-3">
+    <!-- Map visibility toggles -->
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+      <div class="text-xs text-uppercase muted" style="letter-spacing: 0.04em">
+        Xaritada ko‘rsatish:
+      </div>
+
+      <!-- ✅ Default: hammasi checked -->
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_new"
+          checked
+          onchange="toggleStatus('new', this.checked)"
+        />
+        <span class="badge bg-gradient-danger">Yangi</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_sent"
+          checked
+          onchange="toggleStatus('sent', this.checked)"
+        />
+        <span class="badge bg-gradient-primary">Yuborildi</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_read"
+          checked
+          onchange="toggleStatus('read', this.checked)"
+        />
+        <span class="badge bg-gradient-info">O‘qildi</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_in_progress"
+          checked
+          onchange="toggleStatus('in_progress', this.checked)"
+        />
+        <span class="badge bg-gradient-warning text-dark">Jarayonda</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_resolved"
+          checked
+          onchange="toggleStatus('resolved', this.checked)"
+        />
+        <span class="badge bg-gradient-success">Hal qilingan</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_rejected"
+          checked
+          onchange="toggleStatus('rejected', this.checked)"
+        />
+        <span class="badge bg-gradient-dark">Rad etilgan</span>
+      </label>
+
+      <label class="d-inline-flex align-items-center gap-2 mb-0">
+        <input
+          class="form-check-input m-0"
+          type="checkbox"
+          id="st_redirected"
+          checked
+          onchange="toggleStatus('redirected', this.checked)"
+        />
+        <span class="badge bg-gradient-secondary">Yo‘naltirilgan</span>
+      </label>
+
+      <button
+        class="btn btn-sm btn-outline-secondary mb-0 ms-auto"
+        type="button"
+        onclick="resetMapView()"
+      >
+        Xaritani to'g'irlash
+      </button>
+    </div>
+
+    <div id="map"></div>
+  </div>
+</div>
+
+<!-- ===================== CHARTS ===================== -->
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header pb-0">
+        <div class="section-title">
+          <h6>Status bo‘yicha taqsimot</h6>
+          <span class="hint">Hozirgi filterlar bo‘yicha</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div style="height: 320px">
+          <canvas id="chartStatus"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header pb-0">
+        <div class="section-title">
+          <h6>7 kunlik trend</h6>
+          <span class="hint">Kunlik shikoyatlar</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div style="height: 320px">
+          <canvas id="chartTrend"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.css"
+/>
+<script src="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.js"></script>
+
 <script src="{% static 'js/plugins/chartjs.min.js' %}"></script>
 
 <script>
-  var ctx1 = document.getElementById("chart-line").getContext("2d");
-  var gradientStroke1 = ctx1.createLinearGradient(0, 230, 0, 50);
+  const POINTS = {{ points|safe }};
+  const DEFAULT_CENTER = [41.3111, 69.2797];
+  const DEFAULT_ZOOM = 12;
 
-  gradientStroke1.addColorStop(1, 'rgba(94, 114, 228, 0.2)');
-  gradientStroke1.addColorStop(0.2, 'rgba(94, 114, 228, 0.0)');
-  gradientStroke1.addColorStop(0, 'rgba(94, 114, 228, 0)');
+  let map, layerGroup;
+  const markersByStatus = {};
 
-  new Chart(ctx1, {
-    type: "line",
-    data: {
-      labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [{
-        label: "Mobile apps",
-        tension: 0.4,
-        pointRadius: 0,
-        borderColor: "#5e72e4",
-        backgroundColor: gradientStroke1,
-        borderWidth: 3,
-        fill: true,
-        data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
-        maxBarThickness: 6
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      interaction: { intersect: false, mode: 'index' },
-      scales: {
-        y: {
-          grid: {
-            drawBorder: false,
-            display: true,
-            drawOnChartArea: true,
-            drawTicks: false,
-            borderDash: [5, 5]
-          },
-          ticks: {
-            display: true,
-            padding: 10,
-            color: '#fbfbfb',
-            font: { size: 11, family: "Open Sans", style: 'normal', lineHeight: 2 }
-          }
-        },
-        x: {
-          grid: { drawBorder: false, display: false, drawOnChartArea: false, drawTicks: false, borderDash: [5, 5] },
-          ticks: {
-            display: true,
-            color: '#ccc',
-            padding: 20,
-            font: { size: 11, family: "Open Sans", style: 'normal', lineHeight: 2 }
-          }
-        }
-      }
+  // ✅ Org admin default: hamma status ko‘rinsin
+  const statusVisibility = {
+    new: true,
+    sent: true,
+    read: true,
+    accepted: true,
+    assigned: true,
+    in_progress: true,
+    resolved: true,
+    rejected: true,
+    redirected: true
+  };
+
+  const REPORT_DETAIL_URL_TEMPLATE =
+    "{% url 'dashboard:org_report_detail' '00000000-0000-0000-0000-000000000000' %}";
+
+  function fillColor(status) {
+    switch (status) {
+      case "new": return "#f5365c";
+      case "sent": return "#5e72e4";
+      case "read": return "#11cdef";
+      case "accepted": return "#2dce89";
+      case "assigned": return "#fb6340";
+      case "in_progress": return "#fbcf33";
+      case "resolved": return "#2dce89";
+      case "rejected": return "#172b4d";
+      case "redirected": return "#8898aa";
+      default: return "#5e72e4";
+    }
+  }
+
+  function badgeClass(status) {
+    if (status === "new") return "bg-gradient-danger";
+    if (status === "sent") return "bg-gradient-primary";
+    if (status === "read") return "bg-gradient-info";
+    if (status === "accepted" || status === "resolved") return "bg-gradient-success";
+    if (status === "assigned" || status === "in_progress") return "bg-gradient-warning";
+    if (status === "rejected") return "bg-gradient-dark";
+    return "bg-gradient-secondary";
+  }
+
+  function safeText(x) {
+    if (x === null || x === undefined) return "";
+    return String(x)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function truncate(str, n) {
+    const s = (str || "").trim();
+    if (!s) return "";
+    if (s.length <= n) return s;
+    return s.slice(0, n - 1) + "…";
+  }
+
+  function popupHtml(p) {
+    const detailUrl = REPORT_DETAIL_URL_TEMPLATE.replace(
+      "00000000-0000-0000-0000-000000000000",
+      p.id
+    );
+
+    const created = p.created_at ? new Date(p.created_at).toLocaleString() : "-";
+
+    const fullName = (p.user_full_name || "").trim();
+    const username = (p.user_username || "").trim();
+    const phone = (p.user_phone || "").trim();
+    const fallback = (p.user || "").toString().trim();
+    const who = fullName || username || phone || fallback || "-";
+
+    const desc = truncate(p.description || "", 80) || "-";
+
+    return `
+      <div class="popup-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="badge ${badgeClass(p.status)}" style="font-size:12px;">
+            ${safeText(p.status_label || p.status)}
+          </span>
+          <small class="text-muted">${safeText(created)}</small>
+        </div>
+
+        <div class="popup-title">Shikoyat #${safeText(p.id)}</div>
+
+        <div class="popup-kv">
+          <div class="k">Tashkilot</div>
+          <div class="v">${safeText(p.org || "-")}</div>
+        </div>
+
+        <div class="popup-kv">
+          <div class="k">Yuborgan</div>
+          <div class="v">${safeText(who)}</div>
+        </div>
+
+        <div class="popup-desc">${safeText(desc)}</div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <a href="${detailUrl}"
+             style="display:inline-block;padding:8px 14px;background:#5e72e4;color:#fff;text-decoration:none;border-radius:8px;font-size:13px;font-weight:600;">
+            Batafsil
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  function initMap() {
+    map = L.map("map", {
+      fullscreenControl: true,
+      fullscreenControlOptions: { position: "topleft" }
+    }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap"
+    }).addTo(map);
+
+    layerGroup = L.layerGroup().addTo(map);
+
+    Object.keys(statusVisibility).forEach(s => (markersByStatus[s] = []));
+
+    if (POINTS.length) {
+      POINTS.forEach(p => {
+        if (p.lat === null || p.lng === null || p.lat === undefined || p.lng === undefined) return;
+
+        const marker = L.circleMarker([p.lat, p.lng], {
+          radius: 9,
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.86,
+          color: "rgba(0,0,0,.55)",
+          fillColor: fillColor(p.status)
+        });
+
+        marker.bindPopup(popupHtml(p), { maxWidth: 520 });
+
+        if (statusVisibility[p.status]) marker.addTo(layerGroup);
+        (markersByStatus[p.status] || []).push(marker);
+      });
+
+      fitToVisiblePoints();
+    }
+
+    setTimeout(() => map.invalidateSize(), 350);
+    window.addEventListener("resize", () => map.invalidateSize());
+  }
+
+  function fitToVisiblePoints() {
+    const visiblePoints = POINTS.filter(p => !!statusVisibility[p.status]);
+    if (!visiblePoints.length) {
+      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+      return;
+    }
+    if (visiblePoints.length === 1) {
+      map.setView([visiblePoints[0].lat, visiblePoints[0].lng], 13);
+      return;
+    }
+    const bounds = L.latLngBounds(visiblePoints.map(p => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 13 });
+  }
+
+  function resetMapView() { fitToVisiblePoints(); }
+
+  function toggleStatus(status, visible) {
+    statusVisibility[status] = visible;
+    (markersByStatus[status] || []).forEach(m => {
+      if (visible) m.addTo(layerGroup);
+      else layerGroup.removeLayer(m);
+    });
+    // view ham moslashsin
+    fitToVisiblePoints();
+  }
+
+  function selectAllStatuses(on) {
+    document.querySelectorAll(".status-check").forEach(cb => (cb.checked = on));
+  }
+
+  document.addEventListener("submit", (e) => {
+    if (e.target && e.target.id === "mapFilterForm") {
+      e.target.querySelectorAll("input[name='status'][data-dyn='1']").forEach(x => x.remove());
+      document.querySelectorAll(".status-check:checked").forEach(cb => {
+        const inp = document.createElement("input");
+        inp.type = "hidden";
+        inp.name = "status";
+        inp.value = cb.value;
+        inp.setAttribute("data-dyn", "1");
+        e.target.appendChild(inp);
+      });
     }
   });
+
+  function initCharts() {
+    const statusLabels = {{ chart_status_labels|safe }};
+    const statusValues = {{ chart_status_values_filtered|safe }};
+    const daysLabels = {{ chart_days_labels|safe }};
+    const daysValues = {{ chart_days_values|safe }};
+
+    const ctx1 = document.getElementById("chartStatus").getContext("2d");
+    new Chart(ctx1, {
+      type: "bar",
+      data: { labels: statusLabels, datasets: [{ label: "Soni", data: statusValues, borderWidth: 1 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+    });
+
+    const ctx2 = document.getElementById("chartTrend").getContext("2d");
+    new Chart(ctx2, {
+      type: "line",
+      data: { labels: daysLabels, datasets: [{ label: "Kunlik shikoyatlar", data: daysValues, tension: 0.35, borderWidth: 2, pointRadius: 3, fill: false }] },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initMap();
+    initCharts();
+    resetMapView();
+  });
 </script>
+
 {% endblock %}

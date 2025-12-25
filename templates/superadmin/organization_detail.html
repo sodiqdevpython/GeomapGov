@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}{{ org.name }} | Tashkilot{% endblock %}
-{% block breadcrumb %}Tashkilot detail{% endblock %}
+{% block breadcrumb %}Tashkilot{% endblock %}
 {% block page_title %}{{ org.name }}{% endblock %}
 
 {% block content %}
@@ -50,7 +50,7 @@
           <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
             <div class="input-group">
               <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
-              <input type="text" class="form-control" name="mq" value="{{ mq }}" placeholder="username/email qidirish...">
+              <input type="text" class="form-control" name="mq" value="{{ mq }}" placeholder="Qidirish...">
             </div>
 
             <select class="form-select" name="role" style="min-width: 160px;">

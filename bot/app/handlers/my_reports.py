@@ -205,7 +205,7 @@ async def show_current_report(message_or_query, state: FSMContext):
         )
 
 
-@router.message(F.text.startswith("2."))
+@router.message(F.text.startswith("Murojaatlarim"))
 async def my_reports(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
     await state.clear()
     items, err = await fetch_reports_with_refresh(message, db, api, resolved=False)
@@ -221,7 +221,7 @@ async def my_reports(message: Message, state: FSMContext, db: BotDB, api: ApiCli
     await show_current_report(message, state)
 
 
-@router.message(F.text.startswith("3."))
+@router.message(F.text.startswith("Tugallangan murojaatlarim"))
 async def my_resolved_reports(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
     await state.clear()
     items, err = await fetch_reports_with_refresh(message, db, api, resolved=True)

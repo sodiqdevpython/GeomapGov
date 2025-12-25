@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("users.urls")),
     path("api/", include("reports.urls")),
+    path("api/", include("organizations.urls")),
     path("", include("dashboard.urls")),
     
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

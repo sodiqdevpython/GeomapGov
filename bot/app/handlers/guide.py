@@ -37,7 +37,7 @@ async def ensure_fresh_token(db: BotDB, api: ApiClient, telegram_id: int) -> str
     return access
 
 
-@router.message(F.text.startswith("4."))
+@router.message(F.text.startswith("Ishlatish bo‘yicha qo‘llanma"))
 async def guide(message: Message, db: BotDB, api: ApiClient):
     telegram_id = message.from_user.id
     user = await db.get_user(telegram_id)

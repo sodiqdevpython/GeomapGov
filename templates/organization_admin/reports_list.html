@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shikoyatlar | GeomapGov{% endblock %}
+{% block breadcrumb %}Shikoyatlar{% endblock %}
+{% block page_title %}Shikoyatlar{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+
+    <div class="card mb-4">
+      <div class="card-header pb-0">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center">
+          <div>
+            <h6 class="mb-0">{{ org.name }} — Jami shikoyatlar</h6>
+            <p class="text-sm text-secondary mb-0">Kelgan va hal qilingan shikoyatlar</p>
+          </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="row mt-3">
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Jami</div><div class="h5 mb-0">{{ total_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Yangi</div><div class="h5 mb-0">{{ new_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">O‘qildi</div><div class="h5 mb-0">{{ read_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Qabul qilingan</div><div class="h5 mb-0">{{ accepted_count }}</div></div></div>
+
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Jarayonda</div><div class="h5 mb-0">{{ in_progress_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Hal qilingan</div><div class="h5 mb-0">{{ resolved_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Rad</div><div class="h5 mb-0">{{ rejected_count }}</div></div></div>
+          <div class="col-6 col-md-3 mb-2"><div class="card card-body py-2"><div class="text-sm">Yo‘naltirilgan</div><div class="h5 mb-0">{{ redirected_count }}</div></div></div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mt-3" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link {% if tab == 'incoming' %}active{% endif %}"
+               href="?tab=incoming&iq={{ iq }}&iper_page={{ iper_page }}">
+              Kelgan shikoyatlar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if tab == 'resolved' %}active{% endif %}"
+               href="?tab=resolved&rq={{ rq }}&rper_page={{ rper_page }}">
+              Jarayonga o'tkazilgan
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body">
+
+        {% if tab == "incoming" %}
+          <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center mb-3">
+            <input type="hidden" name="tab" value="incoming"/>
+
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" name="iq" value="{{ iq }}" placeholder="Qidirish (matn yoki user)...">
+            </div>
+
+            <select class="form-select" name="iper_page" style="min-width: 140px;">
+              <option value="10" {% if iper_page == 10 %}selected{% endif %}>10 / sahifa</option>
+              <option value="25" {% if iper_page == 25 %}selected{% endif %}>25 / sahifa</option>
+              <option value="50" {% if iper_page == 50 %}selected{% endif %}>50 / sahifa</option>
+              <option value="100" {% if iper_page == 100 %}selected{% endif %}>100 / sahifa</option>
+            </select>
+
+            <button class="btn btn-primary mb-0" type="submit"><i class="fa fa-filter me-1"></i> Filter</button>
+            {% if iq %}
+              <a class="btn btn-outline-secondary mb-0" href="?tab=incoming&iper_page={{ iper_page }}">Tozalash</a>
+            {% endif %}
+          </form>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Shikoyat</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Vaqt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in incoming_page_obj.object_list %}
+                <tr>
+                  <td class="ps-4">
+                    <a href="{% url 'dashboard:org_report_detail' r.id %}">
+                      <div class="d-flex flex-column">
+                        <span class="text-sm fw-bold">#{{ r.id }} — {{ r.user.username }}</span>
+                        <span class="text-xs text-secondary">
+                          {{ r.description|truncatechars:80 }}
+                        </span>
+                      </div>
+                    </a>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="badge bg-secondary">{{ r.get_status_uz }}</span>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs text-secondary">{{ r.created_at|date:"d/m/Y" }} {{ r.created_at|time:"H:i" }}</span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center py-4 text-muted">Kelgan shikoyatlar yo‘q.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination incoming -->
+          <div class="pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div class="text-sm text-secondary">
+              Sahifa: <b>{{ incoming_page_obj.number }}</b> / <b>{{ incoming_page_obj.paginator.num_pages }}</b>
+              — Jami: <b>{{ incoming_page_obj.paginator.count }}</b>
+            </div>
+
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                {% if incoming_page_obj.has_previous %}
+                  <li class="page-item"><a class="page-link" href="?tab=incoming&ipage=1&iper_page={{ iper_page }}&iq={{ iq }}">«</a></li>
+                  <li class="page-item"><a class="page-link" href="?tab=incoming&ipage={{ incoming_page_obj.previous_page_number }}&iper_page={{ iper_page }}&iq={{ iq }}">‹</a></li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">«</span></li>
+                  <li class="page-item disabled"><span class="page-link">‹</span></li>
+                {% endif %}
+
+                {% for p in incoming_page_obj.paginator.page_range %}
+                  {% if p >= incoming_page_obj.number|add:-2 and p <= incoming_page_obj.number|add:2 %}
+                    <li class="page-item {% if p == incoming_page_obj.number %}active{% endif %}">
+                      <a class="page-link" href="?tab=incoming&ipage={{ p }}&iper_page={{ iper_page }}&iq={{ iq }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if incoming_page_obj.has_next %}
+                  <li class="page-item"><a class="page-link" href="?tab=incoming&ipage={{ incoming_page_obj.next_page_number }}&iper_page={{ iper_page }}&iq={{ iq }}">›</a></li>
+                  <li class="page-item"><a class="page-link" href="?tab=incoming&ipage={{ incoming_page_obj.paginator.num_pages }}&iper_page={{ iper_page }}&iq={{ iq }}">»</a></li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">›</span></li>
+                  <li class="page-item disabled"><span class="page-link">»</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+
+        {% if tab == "resolved" %}
+          <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center mb-3">
+            <input type="hidden" name="tab" value="resolved"/>
+
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" name="rq" value="{{ rq }}" placeholder="Qidirish...">
+            </div>
+
+            <select class="form-select" name="rper_page" style="min-width: 140px;">
+              <option value="10" {% if rper_page == 10 %}selected{% endif %}>10 / sahifa</option>
+              <option value="25" {% if rper_page == 25 %}selected{% endif %}>25 / sahifa</option>
+              <option value="50" {% if rper_page == 50 %}selected{% endif %}>50 / sahifa</option>
+              <option value="100" {% if rper_page == 100 %}selected{% endif %}>100 / sahifa</option>
+            </select>
+
+            <button class="btn btn-primary mb-0" type="submit"><i class="fa fa-filter me-1"></i> Filter</button>
+            {% if rq %}
+              <a class="btn btn-outline-secondary mb-0" href="?tab=resolved&rper_page={{ rper_page }}">Tozalash</a>
+            {% endif %}
+          </form>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Shikoyat</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hal bo‘lgan vaqt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in resolved_page_obj.object_list %}
+                <tr>
+                  <td class="ps-4">
+                    <a href="{% url 'dashboard:org_report_detail' r.id %}">
+                      <div class="d-flex flex-column">
+                        <span class="text-sm fw-bold">#{{ r.id }} — {{ r.user.username }}</span>
+                        <span class="text-xs text-secondary">{{ r.description|truncatechars:90 }}</span>
+                      </div>
+                    </a>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs text-secondary">
+                      {% if r.resolved_at %}
+                        {{ r.resolved_at|date:"d/m/Y" }} {{ r.resolved_at|time:"H:i" }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" class="text-center py-4 text-muted">Hal qilingan shikoyatlar yo‘q.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination resolved -->
+          <div class="pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div class="text-sm text-secondary">
+              Sahifa: <b>{{ resolved_page_obj.number }}</b> / <b>{{ resolved_page_obj.paginator.num_pages }}</b>
+              — Jami: <b>{{ resolved_page_obj.paginator.count }}</b>
+            </div>
+
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                {% if resolved_page_obj.has_previous %}
+                  <li class="page-item"><a class="page-link" href="?tab=resolved&rpage=1&rper_page={{ rper_page }}&rq={{ rq }}">«</a></li>
+                  <li class="page-item"><a class="page-link" href="?tab=resolved&rpage={{ resolved_page_obj.previous_page_number }}&rper_page={{ rper_page }}&rq={{ rq }}">‹</a></li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">«</span></li>
+                  <li class="page-item disabled"><span class="page-link">‹</span></li>
+                {% endif %}
+
+                {% for p in resolved_page_obj.paginator.page_range %}
+                  {% if p >= resolved_page_obj.number|add:-2 and p <= resolved_page_obj.number|add:2 %}
+                    <li class="page-item {% if p == resolved_page_obj.number %}active{% endif %}">
+                      <a class="page-link" href="?tab=resolved&rpage={{ p }}&rper_page={{ rper_page }}&rq={{ rq }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if resolved_page_obj.has_next %}
+                  <li class="page-item"><a class="page-link" href="?tab=resolved&rpage={{ resolved_page_obj.next_page_number }}&rper_page={{ rper_page }}&rq={{ rq }}">›</a></li>
+                  <li class="page-item"><a class="page-link" href="?tab=resolved&rpage={{ resolved_page_obj.paginator.num_pages }}&rper_page={{ rper_page }}&rq={{ rq }}">»</a></li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">›</span></li>
+                  <li class="page-item disabled"><span class="page-link">»</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

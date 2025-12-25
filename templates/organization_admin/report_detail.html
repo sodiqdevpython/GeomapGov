@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shikoyat #{{ report.id }} | GeomapGov{% endblock %}
+{% block breadcrumb %}Shikoyat tafsiloti{% endblock %}
+{% block page_title %}Shikoyat #{{ report.id }}{% endblock %}
+
+{% block content %}
+
+<style>
+  /* Modal ichida "Tanlash" ustuni ko‘rinishi uchun */
+  .col-select {
+    width: 56px;
+    min-width: 56px;
+    max-width: 56px;
+  }
+  .select-cell {
+    padding-left: 14px !important;
+    padding-right: 10px !important;
+    vertical-align: middle;
+  }
+  .select-cell .form-check-input,
+  #selectAllOnPage {
+    cursor: pointer;
+    transform: scale(1.05);
+  }
+</style>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+
+    <div class="card mb-4">
+      <div class="card-header pb-0 d-flex justify-content-between align-items-start">
+        <div>
+          <h6 class="mb-0">#{{ report.id }} — {{ report.user.username }}</h6>
+          <p class="text-sm text-secondary mb-1">
+            {{ report.created_at|date:"d/m/Y" }} {{ report.created_at|time:"H:i" }}
+          </p>
+
+          <div class="text-sm text-secondary">
+            Telefon: <b>{{ report.user.phone_number|default:"-" }}</b>
+          </div>
+
+          <div class="text-sm text-secondary">
+            <b>{{ report.user.first_name }} {{ report.user.last_name }}</b>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <span class="badge bg-secondary">{{ report.get_status_uz }}</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p class="mb-3">{{ report.description }}</p>
+
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge bg-light text-dark">Yuborilgan tashkilot: {{ report.organization.name }}</span>
+        </div>
+
+        {# Google Maps #}
+        <div class="mt-3">
+          <div class="d-flex gap-2 align-items-center mb-2">
+            <span class="text-sm fw-bold">Manzil (Google Maps):</span>
+            {% if report.latitude and report.longitude %}
+              <a class="btn btn-sm btn-outline-primary mb-0" target="_blank"
+                 href="https://www.google.com/maps?q={{ report.latitude }},{{ report.longitude }}">
+                Xaritadan ko'rish
+              </a>
+            {% else %}
+              <span class="text-sm text-secondary">Lokatsiya mavjud emas.</span>
+            {% endif %}
+          </div>
+
+          {% if report.latitude and report.longitude %}
+            <div class="ratio ratio-16x9">
+              <iframe
+                src="https://www.google.com/maps?q={{ report.latitude }},{{ report.longitude }}&z=17&output=embed"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          {% else %}
+            <div class="text-sm text-secondary">
+              Ushbu shikoyat uchun xarita koordinatalari kiritilmagan.
+            </div>
+          {% endif %}
+        </div>
+
+        {# Assigned staff list #}
+        <div class="mt-4">
+          <div class="text-sm fw-bold mb-1">Biriktirilgan a’zolar:</div>
+          {% if current_assignments %}
+            <ul class="mb-0">
+              {% for a in current_assignments %}
+                <li class="text-sm">
+                  {{ a.assigned_to.username }}
+                  {% if a.assigned_to.first_name or a.assigned_to.last_name %}
+                    ({{ a.assigned_to.first_name }} {{ a.assigned_to.last_name }})
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-sm text-secondary">Hali biriktirilmagan.</div>
+          {% endif %}
+        </div>
+
+        {# Actions #}
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          {% if can_act %}
+            <button type="button" class="btn btn-primary mb-0"
+                    data-bs-toggle="modal" data-bs-target="#assignModal">
+              Qabul qilish va biriktirish
+            </button>
+
+            <button type="button" class="btn btn-outline-danger mb-0"
+                    data-bs-toggle="modal" data-bs-target="#rejectModal">
+              Rad etish
+            </button>
+          {% endif %}
+
+          <a class="btn btn-outline-secondary mb-0" href="{% url 'dashboard:org_reports' %}">
+            Orqaga
+          </a>
+        </div>
+
+        {% if not can_act %}
+          <div class="mt-3 text-sm text-secondary">
+            Bu shikoyat bo‘yicha amal bajarib bo‘lmaydi (status mos emas).
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Attachments #}
+    <div class="card">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Fayllar</h6>
+      </div>
+      <div class="card-body">
+        {% if report.attachments.exists %}
+          <ul class="list-group">
+            {% for a in report.attachments.all %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="text-sm fw-bold">{{ a.original_name|default:"Attachment" }}</div>
+                  <div class="text-xs text-secondary">{{ a.mime_type }} • {{ a.file_size }} байт</div>
+                </div>
+                {% if a.file %}
+                  <a class="btn btn-sm btn-outline-primary mb-0" href="{{ a.file.url }}" target="_blank">Ochish</a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-muted">Fayl yo‘q</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  {# Side info #}
+  <div class="col-12 col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Holat</h6>
+      </div>
+      <div class="card-body">
+        <div class="text-sm">
+          <div class="mb-2">
+            <span class="text-secondary">O‘qilgan vaqt:</span>
+            <b>
+              {% if read_obj %}
+                {{ read_obj.read_at|date:"d/m/Y" }} {{ read_obj.read_at|time:"H:i" }}
+              {% else %}
+                -
+              {% endif %}
+            </b>
+          </div>
+
+          <div class="mb-2">
+            <span class="text-secondary">O‘qigan:</span>
+            <b>
+              {% if read_obj and read_obj.read_by %}
+                {{ read_obj.read_by.username }}
+              {% else %}
+                -
+              {% endif %}
+            </b>
+          </div>
+
+          <div class="mb-2">
+            <span class="text-secondary">Hal qilingan:</span>
+            <b>
+              {% if report.resolved_at %}
+                {{ report.resolved_at|date:"d/m/Y" }} {{ report.resolved_at|time:"H:i" }}
+              {% else %}
+                -
+              {% endif %}
+            </b>
+          </div>
+
+          <div>
+            <span class="text-secondary">Tashkilot:</span>
+            <b>{{ org.name }}</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if can_act %}
+
+  <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h6 class="modal-title mb-0">Qabul qilish va a’zolarga biriktirish</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+
+          {# Search form (GET) #}
+          <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center mb-3">
+            <input type="hidden" name="open_assign" value="1" />
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" name="staff_q" value="{{ staff_q }}" placeholder="A’zo qidirish...">
+            </div>
+
+            <select class="form-select" name="staff_per_page" style="min-width: 140px;">
+              <option value="10" {% if staff_per_page == 10 %}selected{% endif %}>10 / sahifa</option>
+              <option value="25" {% if staff_per_page == 25 %}selected{% endif %}>25 / sahifa</option>
+              <option value="50" {% if staff_per_page == 50 %}selected{% endif %}>50 / sahifa</option>
+              <option value="100" {% if staff_per_page == 100 %}selected{% endif %}>100 / sahifa</option>
+            </select>
+
+            <button class="btn btn-outline-primary mb-0" type="submit">Qidirish</button>
+
+            {% if staff_q %}
+              <a class="btn btn-outline-secondary mb-0"
+                 href="?open_assign=1&staff_per_page={{ staff_per_page }}">Tozalash</a>
+            {% endif %}
+          </form>
+
+          {# Assign POST (tanlanganlar saqlanadi) #}
+          <form method="post" id="assignForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="accept_assign"/>
+
+            {# Tanlanganlarni POSTga yuborish uchun hidden inputlar shu yerda yaratiladi #}
+            <div id="selectedStaffHidden"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="text-sm text-secondary">
+                Tanlanganlar: <b id="selectedCount">0</b>
+              </div>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="selectAllOnPage">
+                <label class="form-check-label text-sm fw-bold" for="selectAllOnPage">
+                  Ushbu sahifadagi barcha uchun
+                </label>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table align-items-center mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 col-select text-center">
+                      Tanlash
+                    </th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">A’zo</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Telefon</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for m in staff_page_obj.object_list %}
+                  <tr>
+                    <td class="select-cell col-select">
+                      <div style="
+                          display:flex;
+                          align-items:center;
+                          justify-content:center;
+                        ">
+                        <span style="
+                            display:inline-flex;
+                            align-items:center;
+                            justify-content:center;
+                            width:34px;
+                            height:34px;
+                            border-radius:10px;
+                            background:#fff;
+                            border:1px solid rgba(0, 0, 0, 0.12);
+                            box-shadow:0 1px 2px rgba(0,0,0,.06);
+                          ">
+                          <input
+                            class="form-check-input staff-checkbox"
+                            type="checkbox"
+                            data-user-id="{{ m.user.id }}"
+                            value="{{ m.user.id }}"
+                            style="
+                              margin:0;
+                              width:18px;
+                              height:18px;
+                              border:2px solid rgba(0,0,0,.35);
+                              border-radius:5px;
+                              background-color:#fff;
+                              cursor:pointer;
+                            "
+                          >
+                        </span>
+                      </div>
+                    </td>
+
+
+                    <td>
+                      <div class="d-flex flex-column">
+                        <span class="text-sm fw-bold">{{ m.user.username }}</span>
+                        <span class="text-xs text-secondary">{{ m.user.first_name }} {{ m.user.last_name }}</span>
+                      </div>
+                    </td>
+
+                    <td class="text-sm">{{ m.user.phone_number|default:"-" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                      Bu tashkilotda a’zolar yo‘q (OrganizationMember topilmadi).
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            {# Pagination inside modal #}
+            <div class="pt-3 d-flex justify-content-between align-items-center">
+              <div class="text-sm text-secondary">
+                Sahifa: <b>{{ staff_page_obj.number }}</b> / <b>{{ staff_page_obj.paginator.num_pages }}</b>
+                — Jami: <b>{{ staff_page_obj.paginator.count }}</b>
+              </div>
+
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  {% if staff_page_obj.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link"
+                         href="?open_assign=1&staff_page=1&staff_per_page={{ staff_per_page }}&staff_q={{ staff_q|urlencode }}">«</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link"
+                         href="?open_assign=1&staff_page={{ staff_page_obj.previous_page_number }}&staff_per_page={{ staff_per_page }}&staff_q={{ staff_q|urlencode }}">‹</a>
+                    </li>
+                  {% else %}
+                    <li class="page-item disabled"><span class="page-link">«</span></li>
+                    <li class="page-item disabled"><span class="page-link">‹</span></li>
+                  {% endif %}
+
+                  {% for p in staff_page_obj.paginator.page_range %}
+                    {% if p >= staff_page_obj.number|add:-2 and p <= staff_page_obj.number|add:2 %}
+                      <li class="page-item {% if p == staff_page_obj.number %}active{% endif %}">
+                        <a class="page-link"
+                           href="?open_assign=1&staff_page={{ p }}&staff_per_page={{ staff_per_page }}&staff_q={{ staff_q|urlencode }}">{{ p }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if staff_page_obj.has_next %}
+                    <li class="page-item">
+                      <a class="page-link"
+                         href="?open_assign=1&staff_page={{ staff_page_obj.next_page_number }}&staff_per_page={{ staff_per_page }}&staff_q={{ staff_q|urlencode }}">›</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link"
+                         href="?open_assign=1&staff_page={{ staff_page_obj.paginator.num_pages }}&staff_per_page={{ staff_per_page }}&staff_q={{ staff_q|urlencode }}">»</a>
+                    </li>
+                  {% else %}
+                    <li class="page-item disabled"><span class="page-link">›</span></li>
+                    <li class="page-item disabled"><span class="page-link">»</span></li>
+                  {% endif %}
+                </ul>
+              </nav>
+            </div>
+
+            <div class="mt-3 d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-outline-secondary mb-0" data-bs-dismiss="modal">Bekor</button>
+              <button type="submit" class="btn btn-primary mb-0">Qabul qilish va biriktirish</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h6 class="modal-title mb-0">Rad etish</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reject"/>
+
+          <div class="modal-body">
+            <label class="form-label">Sabab (kamida 20 ta belgi)</label>
+            <textarea class="form-control" name="reason" rows="4" minlength="20" required
+                      placeholder="Masalan: Bu masala bizning tashkilot vakolatiga kirmaydi, chunki ..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary mb-0" data-bs-dismiss="modal">Bekor</button>
+            <button type="submit" class="btn btn-danger mb-0">Rad etish</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // --- selection storage per report ---
+      const STORAGE_KEY = "selected_staff_report_{{ report.id }}";
+      const hiddenBox = document.getElementById("selectedStaffHidden");
+      const countEl = document.getElementById("selectedCount");
+      const selectAll = document.getElementById("selectAllOnPage");
+
+      function loadSet() {
+        try {
+          const arr = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "[]");
+          return new Set(arr.map(String));
+        } catch (e) {
+          return new Set();
+        }
+      }
+
+      function saveSet(setObj) {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(setObj)));
+      }
+
+      function renderHiddenInputs(setObj) {
+        if (!hiddenBox) return;
+        hiddenBox.innerHTML = "";
+        setObj.forEach(id => {
+          const inp = document.createElement("input");
+          inp.type = "hidden";
+          inp.name = "staff_ids";
+          inp.value = id;
+          hiddenBox.appendChild(inp);
+        });
+        if (countEl) countEl.textContent = setObj.size;
+      }
+
+      function syncCheckboxes(setObj) {
+        const checkboxes = document.querySelectorAll(".staff-checkbox");
+        let allChecked = true;
+
+        checkboxes.forEach(cb => {
+          const id = String(cb.getAttribute("data-user-id"));
+          cb.checked = setObj.has(id);
+          if (!cb.checked) allChecked = false;
+        });
+
+        if (selectAll) {
+          if (checkboxes.length === 0) allChecked = false;
+          selectAll.checked = allChecked;
+        }
+      }
+
+      let selected = loadSet();
+      renderHiddenInputs(selected);
+      syncCheckboxes(selected);
+
+      document.querySelectorAll(".staff-checkbox").forEach(cb => {
+        cb.addEventListener("change", () => {
+          const id = String(cb.getAttribute("data-user-id"));
+          if (cb.checked) selected.add(id);
+          else selected.delete(id);
+
+          saveSet(selected);
+          renderHiddenInputs(selected);
+          syncCheckboxes(selected);
+        });
+      });
+
+      if (selectAll) {
+        selectAll.addEventListener("change", () => {
+          document.querySelectorAll(".staff-checkbox").forEach(cb => {
+            const id = String(cb.getAttribute("data-user-id"));
+            if (selectAll.checked) selected.add(id);
+            else selected.delete(id);
+          });
+          saveSet(selected);
+          renderHiddenInputs(selected);
+          syncCheckboxes(selected);
+        });
+      }
+
+      // submitdan keyin eski selection qolib ketmasin
+      const form = document.getElementById("assignForm");
+      if (form) {
+        form.addEventListener("submit", () => {
+          sessionStorage.removeItem(STORAGE_KEY);
+        });
+      }
+
+      // modal auto open
+      {% if open_assign %}
+        var m1 = new bootstrap.Modal(document.getElementById('assignModal'));
+        m1.show();
+      {% endif %}
+      {% if open_reject %}
+        var m2 = new bootstrap.Modal(document.getElementById('rejectModal'));
+        m2.show();
+      {% endif %}
+    });
+  </script>
+
+{% endif %}
+{% endblock %}

@@ -11,6 +11,7 @@ class ReportCreate(StatesGroup):
     waiting_description = State()
     collecting_media = State()
     waiting_location = State()
+    waiting_organization = State()
     confirm = State()
 
 

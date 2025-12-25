@@ -1,6 +1,7 @@
 import mimetypes
 from rest_framework import serializers
 from .models import Report, ReportAttachment
+from organizations.models import Organization
 from .choices import AttachmentType, ReportStatus
 
 
@@ -21,6 +22,7 @@ class ReportAttachmentSerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     attachments = ReportAttachmentSerializer(many=True, read_only=True)
+    organization_name = serializers.CharField(source="organization.name", read_only=True)
 
     class Meta:
         model = Report
@@ -29,12 +31,25 @@ class ReportSerializer(serializers.ModelSerializer):
             "description",
             "latitude",
             "longitude",
+            "organization",
+            "organization_name",
             "status",
             "resolved_at",
             "created_at",
             "attachments",
         )
-        read_only_fields = ("status", "resolved_at", "created_at", "attachments")
+        read_only_fields = ("status", "resolved_at", "created_at", "attachments", "organization_name")
+
+
+class ReportCreateSerializer(serializers.ModelSerializer):
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all(),
+        required=True
+    )
+
+    class Meta:
+        model = Report
+        fields = ("description", "latitude", "longitude", "organization")
 
     def validate(self, attrs):
         lat = attrs.get("latitude")
@@ -50,9 +65,9 @@ class ReportSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         user = request.user
+
         report = Report.objects.create(user=user, **validated_data)
 
-        # ixtiyoriy: bir so'rovda bir nechta fayl
         files = request.FILES.getlist("files")
         for f in files:
             mime, _ = mimetypes.guess_type(getattr(f, "name", "") or "")
@@ -63,7 +78,7 @@ class ReportSerializer(serializers.ModelSerializer):
                 atype = AttachmentType.IMAGE
             elif mime.startswith("video/"):
                 atype = AttachmentType.VIDEO
-            elif mime in ("audio/ogg", "audio/mpeg", "audio/wav") or mime.startswith("audio/"):
+            elif mime.startswith("audio/"):
                 atype = AttachmentType.VOICE
 
             ReportAttachment.objects.create(
@@ -76,17 +91,6 @@ class ReportSerializer(serializers.ModelSerializer):
             )
 
         return report
-
-
-class ReportCreateSerializer(serializers.ModelSerializer):
-    """
-    Create uchun alohida serializer:
-    - status ni user qo'ymaydi
-    - files multipart orqali keladi (files[])
-    """
-    class Meta:
-        model = Report
-        fields = ("description", "latitude", "longitude")
 
 
 class ReportAttachmentCreateSerializer(serializers.Serializer):

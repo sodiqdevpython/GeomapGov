@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}GeomapGov{% endblock %}
+{% block breadcrumb %}Tashkliot a'zolari{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+
+    <div class="card mb-4">
+      <div class="card-header pb-0">
+        <div class="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+          <div>
+            <h6 class="mb-0">{{ org.name|default:"Organization" }}</h6>
+          </div>
+        </div>
+
+        <ul class="nav nav-tabs mt-3" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link {% if tab == 'reporters' %}active{% endif %}"
+               href="?tab=reporters&rq={{ rq }}&rper_page={{ rper_page }}">
+              Barcha a'zolar
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link {% if tab == 'members' %}active{% endif %}"
+               href="?tab=members&mq={{ mq }}&mper_page={{ mper_page }}">
+              Shu tashkilot a’zolari
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body">
+        {% if tab == "reporters" %}
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+            <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+              <input type="hidden" name="tab" value="reporters"/>
+
+              <div class="input-group">
+                <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" name="rq" value="{{ rq }}" placeholder="Qidirish...">
+              </div>
+
+              <select class="form-select" name="rper_page" style="min-width: 140px;">
+                <option value="10" {% if rper_page == 10 %}selected{% endif %}>10 / sahifa</option>
+                <option value="25" {% if rper_page == 25 %}selected{% endif %}>25 / sahifa</option>
+                <option value="50" {% if rper_page == 50 %}selected{% endif %}>50 / sahifa</option>
+                <option value="100" {% if rper_page == 100 %}selected{% endif %}>100 / sahifa</option>
+              </select>
+
+              <button class="btn btn-primary mb-0" type="submit">
+                <i class="fa fa-filter me-1"></i> Qidirish
+              </button>
+
+              {% if rq %}
+                <a class="btn btn-outline-secondary mb-0" href="?tab=reporters&rper_page={{ rper_page }}">Tozalash</a>
+              {% endif %}
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Reporter</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Holat</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Amal</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for u in reporters_page_obj.object_list %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex px-2 py-1 align-items-center">
+                      <div>
+                        <img src="{% static 'img/logo.png' %}" class="avatar avatar-sm me-3" alt="user">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">{{ u.username }}</h6>
+                        <p class="text-xs text-secondary mb-0">{{ u.first_name }} {{ u.last_name }}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="align-middle text-center">
+                    {% if u.is_member %}
+                      <span class="badge bg-success">A’zo</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Mos</span>
+                    {% endif %}
+                  </td>
+
+                  <td class="align-middle text-center">
+                    {% if u.is_member %}
+                      <button class="btn btn-sm btn-outline-success mb-0" disabled>Allaqachon biriktirilgan</button>
+                    {% elif u.has_reports %}
+                      <button class="btn btn-sm btn-outline-danger mb-0" disabled>Qo‘shib bo‘lmaydi</button>
+                    {% else %}
+                      <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="assign">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button class="btn btn-sm btn-primary mb-0" type="submit">
+                          Biriktirish
+                        </button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center py-4">
+                    <span class="text-muted">Reporter topilmadi.</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {# Pagination (reporters) #}
+          <div class="px-2 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div class="text-sm text-secondary">
+              Sahifa: <b>{{ reporters_page_obj.number }}</b> / <b>{{ reporters_page_obj.paginator.num_pages }}</b>
+              — Jami: <b>{{ reporters_page_obj.paginator.count }}</b>
+            </div>
+
+            <nav aria-label="Reporters pagination">
+              <ul class="pagination pagination-sm mb-0">
+                {% if reporters_page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=reporters&rpage=1&rper_page={{ rper_page }}&rq={{ rq }}">«</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=reporters&rpage={{ reporters_page_obj.previous_page_number }}&rper_page={{ rper_page }}&rq={{ rq }}">‹</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">«</span></li>
+                  <li class="page-item disabled"><span class="page-link">‹</span></li>
+                {% endif %}
+
+                {% for p in reporters_page_obj.paginator.page_range %}
+                  {% if p >= reporters_page_obj.number|add:-2 and p <= reporters_page_obj.number|add:2 %}
+                    <li class="page-item {% if p == reporters_page_obj.number %}active{% endif %}">
+                      <a class="page-link" href="?tab=reporters&rpage={{ p }}&rper_page={{ rper_page }}&rq={{ rq }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if reporters_page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=reporters&rpage={{ reporters_page_obj.next_page_number }}&rper_page={{ rper_page }}&rq={{ rq }}">›</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=reporters&rpage={{ reporters_page_obj.paginator.num_pages }}&rper_page={{ rper_page }}&rq={{ rq }}">»</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">›</span></li>
+                  <li class="page-item disabled"><span class="page-link">»</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+        {% if tab == "members" %}
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+            <form method="get" class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+              <input type="hidden" name="tab" value="members"/>
+
+              <div class="input-group">
+                <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" name="mq" value="{{ mq }}" placeholder="A’zolar qidirish...">
+              </div>
+
+              <select class="form-select" name="mper_page" style="min-width: 140px;">
+                <option value="10" {% if mper_page == 10 %}selected{% endif %}>10 / sahifa</option>
+                <option value="25" {% if mper_page == 25 %}selected{% endif %}>25 / sahifa</option>
+                <option value="50" {% if mper_page == 50 %}selected{% endif %}>50 / sahifa</option>
+                <option value="100" {% if mper_page == 100 %}selected{% endif %}>100 / sahifa</option>
+              </select>
+
+              <button class="btn btn-primary mb-0" type="submit">
+                <i class="fa fa-filter me-1"></i> Qidirish
+              </button>
+
+              {% if mq %}
+                <a class="btn btn-outline-secondary mb-0" href="?tab=members&mper_page={{ mper_page }}">Tozalash</a>
+              {% endif %}
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">A’zo</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ro‘yxatdan o‘tgan vaqt</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Amal</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for u in members_page_obj.object_list %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex px-2 py-1 align-items-center">
+                      <div>
+                        <img src="{% static 'img/logo.png' %}" class="avatar avatar-sm me-3" alt="user">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">{{ u.username }}</h6>
+                        <p class="text-xs text-secondary mb-0">{{ u.first_name }} {{ u.last_name }}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold">
+                      {{ u.date_joined|date:"d/m/Y" }} {{ u.date_joined|time:"H:i" }}
+                    </span>
+                  </td>
+
+                  <td class="align-middle text-center">
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="remove">
+                      <input type="hidden" name="user_id" value="{{ u.id }}">
+                      <button class="btn btn-sm btn-outline-danger mb-0" type="submit"
+                              onclick="return confirm('Rostdan ham chiqarilsinmi?');">
+                        Chiqarish
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center py-4">
+                    <span class="text-muted">A’zolar yo‘q.</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {# Pagination (members) #}
+          <div class="px-2 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div class="text-sm text-secondary">
+              Sahifa: <b>{{ members_page_obj.number }}</b> / <b>{{ members_page_obj.paginator.num_pages }}</b>
+              — Jami: <b>{{ members_page_obj.paginator.count }}</b>
+            </div>
+
+            <nav aria-label="Members pagination">
+              <ul class="pagination pagination-sm mb-0">
+                {% if members_page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=members&mpage=1&mper_page={{ mper_page }}&mq={{ mq }}">«</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=members&mpage={{ members_page_obj.previous_page_number }}&mper_page={{ mper_page }}&mq={{ mq }}">‹</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">«</span></li>
+                  <li class="page-item disabled"><span class="page-link">‹</span></li>
+                {% endif %}
+
+                {% for p in members_page_obj.paginator.page_range %}
+                  {% if p >= members_page_obj.number|add:-2 and p <= members_page_obj.number|add:2 %}
+                    <li class="page-item {% if p == members_page_obj.number %}active{% endif %}">
+                      <a class="page-link" href="?tab=members&mpage={{ p }}&mper_page={{ mper_page }}&mq={{ mq }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if members_page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=members&mpage={{ members_page_obj.next_page_number }}&mper_page={{ mper_page }}&mq={{ mq }}">›</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?tab=members&mpage={{ members_page_obj.paginator.num_pages }}&mper_page={{ mper_page }}&mq={{ mq }}">»</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">›</span></li>
+                  <li class="page-item disabled"><span class="page-link">»</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

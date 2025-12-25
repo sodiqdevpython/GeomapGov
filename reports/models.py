@@ -200,3 +200,25 @@ class ReportRedirect(models.Model):
         null=True
     )
     redirected_at = models.DateTimeField(auto_now_add=True)
+
+class ReportRejection(models.Model):
+    report = models.OneToOneField(
+        "reports.Report",
+        on_delete=models.CASCADE,
+        related_name="rejection"
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE
+    )
+    reason = models.TextField()
+
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    rejected_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Rejected: {self.report_id}"

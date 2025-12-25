@@ -6,14 +6,18 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters.callback_data import CallbackData
+
 
 def menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="1. Murojaat yuborish")],
-            [KeyboardButton(text="2. Murojaatlarim")],
-            [KeyboardButton(text="3. Murojaatlarim hal qilindi")],
-            [KeyboardButton(text="4. Ishlatish bo‘yicha qo‘llanma")],
+            [KeyboardButton(text="Murojaat yuborish")],
+            [KeyboardButton(text="Murojaatlarim")],
+            [KeyboardButton(text="Tugallangan murojaatlarim")],
+            [KeyboardButton(text="Ishlatish bo‘yicha qo‘llanma")],
         ],
         resize_keyboard=True,
     )
@@ -50,7 +54,7 @@ def location_kb() -> ReplyKeyboardMarkup:
 def confirm_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="✅ Ha, tanishib chiqdim roziman")],
+            [KeyboardButton(text="✅ Yuborish")],
             [KeyboardButton(text="❌ Bekor qilish")],
         ],
         resize_keyboard=True,
@@ -101,3 +105,36 @@ def files_list_kb(attachments_count: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="⬅️ Ortga", callback_data="repfile:back"),
     )
     return b.as_markup()
+
+
+class OrgCb(CallbackData, prefix="org"):
+    action: str          # "pick" | "page" | "cancel"
+    page: int            # 1,2,3...
+    org_id: str | None = None
+
+
+def organizations_kb(orgs: list[dict], page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
+    """
+    orgs: [{"id": "...", "name": "..."}]
+    """
+    kb = InlineKeyboardBuilder()
+
+    for org in orgs:
+        kb.button(
+            text=f"🏢 {org['name']}",
+            callback_data=OrgCb(action="pick", page=page, org_id=str(org["id"])).pack()
+        )
+
+    nav = InlineKeyboardBuilder()
+    if has_prev:
+        nav.button(text="⬅️ Oldingi", callback_data=OrgCb(action="page", page=page - 1).pack())
+    nav.button(text=f"📄 {page}", callback_data=OrgCb(action="noop", page=page).pack())
+    if has_next:
+        nav.button(text="Keyingi ➡️", callback_data=OrgCb(action="page", page=page + 1).pack())
+
+    kb.adjust(1)  # har qatorda 1 tadan org
+    kb.attach(nav)
+    kb.button(text="❌ Bekor qilish", callback_data=OrgCb(action="cancel", page=page).pack())
+    kb.adjust(1)
+
+    return kb.as_markup()

@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime, time
-
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Report
 from .choices import ReportStatus
 from .serializers import (
@@ -18,34 +18,22 @@ from users.choices import UserChoices
 
 
 class ReportCreateView(generics.CreateAPIView):
-    """
-    POST /api/reports/
-    multipart/form-data:
-      description: str
-      latitude: decimal
-      longitude: decimal
-      files: (0..n)
-    """
     permission_classes = [IsAuthenticated]
     serializer_class = ReportCreateSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     def create(self, request, *args, **kwargs):
-        ser = self.get_serializer(data=request.data)
+        ser = self.get_serializer(data=request.data, context={"request": request})
         ser.is_valid(raise_exception=True)
+        report_obj = ser.save()
 
-        # Asl create: ReportSerializer.create da files'ni ham olib ketamiz
-        report_ser = ReportSerializer(data=ser.validated_data, context={"request": request})
-        report_ser.is_valid(raise_exception=True)
-        report_obj = report_ser.save()
-
-        return Response(ReportSerializer(report_obj, context={"request": request}).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ReportSerializer(report_obj, context={"request": request}).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class MyReportsView(generics.ListAPIView):
-    """
-    GET /api/reports/mine/
-    resolved bo'lmaganlar chiqadi
-    """
     permission_classes = [IsAuthenticated]
     serializer_class = ReportSerializer
 

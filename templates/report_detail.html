@@ -3,21 +3,21 @@
 {% load l10n %}
 
 {% block title %}Shikoyat #{{ report.id }}{% endblock %}
-{% block breadcrumb %}Shikoyat detail{% endblock %}
+{% block breadcrumb %}Shikoyat haqida{% endblock %}
 {% block page_title %}Shikoyat #{{ report.id }}{% endblock %}
 
 {% block content %}
 <div class="row">
 
   <!-- LEFT: main info + attachments -->
-  <div class="col-lg-4 mb-4">
+  <div class="col-lg-8 mb-4">
 
+    <!-- MAIN INFO -->
     <div class="card">
       <div class="card-body">
         <h6 class="mb-3">Asosiy ma’lumot</h6>
 
         <p class="text-sm mb-1"><b>Status:</b></p>
-        <!-- ✅ O'zbekcha chiqishi uchun -->
         <span class="badge bg-gradient-secondary">{{ report.get_status_uz }}</span>
 
         <hr>
@@ -29,8 +29,8 @@
 
         <p class="text-sm mb-1"><b>Yuborgan:</b></p>
         <p class="text-sm text-secondary mb-2">
-          {{ report.user.username }}
-          {% if report.user.email %} — {{ report.user.email }}{% endif %}
+          {{ report.user.first_name }} {{ report.user.last_name }}
+          {% if report.user.username %} ({{ report.user.username }}){% endif %}
         </p>
 
         <p class="text-sm mb-1"><b>Telefon:</b></p>
@@ -39,7 +39,16 @@
         </p>
 
         <p class="text-sm mb-1"><b>Tavsif:</b></p>
-        <p class="text-sm text-secondary mb-2">{{ report.description }}</p>
+        <p class="text-sm text-secondary mb-2">{{ report.description|default:"-" }}</p>
+
+        <p class="text-sm mb-1"><b>Koordinata:</b></p>
+        <p class="text-sm text-secondary mb-2">
+          {% if report.latitude and report.longitude %}
+            {{ report.latitude|unlocalize }}, {{ report.longitude|unlocalize }}
+          {% else %}
+            -
+          {% endif %}
+        </p>
 
         <p class="text-sm mb-1"><b>Yaratilgan:</b></p>
         <p class="text-sm text-secondary mb-0">
@@ -52,9 +61,17 @@
             {{ report.resolved_at|date:"d/m/Y" }} {{ report.resolved_at|time:"H:i" }}
           </p>
         {% endif %}
+
+        {# Agar sizda reject reason kabi field bo'lsa ko'rsatish uchun tayyor joy #}
+        {% if report.rejection_reason %}
+          <hr>
+          <p class="text-sm mb-1"><b>Rad sababi:</b></p>
+          <p class="text-sm text-secondary mb-0">{{ report.rejection_reason }}</p>
+        {% endif %}
       </div>
     </div>
 
+    <!-- ATTACHMENTS -->
     <div class="card mt-4">
       <div class="card-body">
         <h6 class="mb-3">Fayllar</h6>
@@ -67,11 +84,16 @@
               </p>
               <p class="text-xs text-secondary mb-0">
                 {{ a.mime_type|default:"-" }}
+                {% if a.file_size %} • {{ a.file_size }} байт{% endif %}
               </p>
             </div>
-            <a class="btn btn-sm btn-outline-primary mb-0" href="{{ a.file.url }}" target="_blank">
-              Ochish
-            </a>
+            {% if a.file %}
+              <a class="btn btn-sm btn-outline-primary mb-0" href="{{ a.file.url }}" target="_blank">
+                Ochish
+              </a>
+            {% else %}
+              <button class="btn btn-sm btn-outline-secondary mb-0" disabled>Yo‘q</button>
+            {% endif %}
           </div>
         {% empty %}
           <p class="text-sm text-secondary mb-0">Fayl yo‘q.</p>
@@ -80,12 +102,154 @@
       </div>
     </div>
 
+    <div class="card mt-4">
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Shikoyat tarixi (to‘liq)</h6>
+        <p class="text-sm mb-0 text-muted">
+          O‘qishlar / biriktirishlar / yo‘naltirishlar / rad-qabul
+        </p>
+      </div>
+
+      <div class="card-body">
+        <ul class="list-group">
+          {% for e in timeline %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="me-3">
+
+                <div class="d-flex align-items-center gap-2">
+                  {% if e.type == "read" %}
+                    <span class="badge bg-info">O'qildi</span>
+                  {% elif e.type == "assign" %}
+                    <span class="badge bg-primary">Topshirildi</span>
+                  {% elif e.type == "redirect" %}
+                    <span class="badge bg-warning text-dark">Boshqaga yo'naltirildi</span>
+                  {% elif e.type == "reject" %}
+                    <span class="badge bg-danger">Rad etilid</span>
+                  {% elif e.type == "accept" %}
+                    <span class="badge bg-success">Qabul qilindi</span>
+                  {% else %}
+                    <span class="badge bg-secondary">LOG</span>
+                  {% endif %}
+
+                  <b>{{ e.title|default:"Vaqea" }}</b>
+                </div>
+
+                <div class="text-sm mt-1">
+                  <span class="text-dark">Tashkilot:</span>
+                  <span class="text-secondary">{{ e.org|default:"-" }}</span>
+                </div>
+
+                <div class="text-sm">
+                  <span class="text-dark">Admin:</span>
+                  <span class="text-secondary">{{ e.who|default:"-" }}</span>
+                </div>
+
+                {% if e.details %}
+                  <div class="text-sm">
+                    <span class="text-secondary">{{ e.details }}</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="text-end">
+                <span class="text-xs text-secondary">
+                  {% if e.at %}
+                    {{ e.at|date:"d/m/Y" }} {{ e.at|time:"H:i" }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="list-group-item">
+              <span class="text-sm text-muted">Hozircha tarix yo‘q.</span>
+            </li>
+          {% endfor %}
+        </ul>
+
+        {# Qo'shimcha: xohlasa alohida “raw” ro'yxatlar ham ko'rsatib qo'yish mumkin #}
+        <div class="mt-4">
+          <details>
+            <summary class="text-sm text-secondary" style="cursor:pointer;">
+              Barcha ma'lumotlarni ko'rish uchun bosing
+            </summary>
+
+            <div class="row mt-3 g-3">
+
+              <div class="col-12 col-md-4">
+                <div class="card border">
+                  <div class="card-body">
+                    <h6 class="mb-2">Ko'rildi</h6>
+                    <ul class="mb-0 ps-3">
+                      {% for rr in report.reads.all %}
+                        <li class="text-sm">
+                          {{ rr.organization.name }} —
+                          {% if rr.read_by %}{{ rr.read_by.username }}{% else %}-{% endif %}
+                          ({{ rr.read_at|date:"d/m/Y" }} {{ rr.read_at|time:"H:i" }})
+                        </li>
+                      {% empty %}
+                        <li class="text-sm text-muted">Yo‘q</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="card border">
+                  <div class="card-body">
+                    <h6 class="mb-2">Topshirildi</h6>
+                    <ul class="mb-0 ps-3">
+                      {% for a in report.assignments.all %}
+                        <li class="text-sm">
+                          {% if a.assigned_by %}{{ a.assigned_by.username }}{% else %}-{% endif %}
+                          → {% if a.assigned_to %}{{ a.assigned_to.username }}{% else %}-{% endif %}
+                          ({{ a.created_at|date:"d/m/Y" }} {{ a.created_at|time:"H:i" }})
+                          {% if a.note %}<div class="text-xs text-secondary">Izoh: {{ a.note }}</div>{% endif %}
+                        </li>
+                      {% empty %}
+                        <li class="text-sm text-muted">Yo‘q</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="card border">
+                  <div class="card-body">
+                    <h6 class="mb-2">Yo'naltirildi</h6>
+                    <ul class="mb-0 ps-3">
+                      {% for r in report.redirects.all %}
+                        <li class="text-sm">
+                          {% if r.redirected_by %}{{ r.redirected_by.username }}{% else %}-{% endif %}
+                          : {{ r.from_organization.name }} → {{ r.to_organization.name }}
+                          ({{ r.created_at|date:"d/m/Y" }} {{ r.created_at|time:"H:i" }})
+                          {% if r.reason %}<div class="text-xs text-secondary">Sabab: {{ r.reason }}</div>{% endif %}
+                        </li>
+                      {% empty %}
+                        <li class="text-sm text-muted">Yo‘q</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
 
-  <!-- RIGHT: map + read history -->
-  <div class="col-lg-8 mb-4">
+  <!-- RIGHT: map + full history -->
+  <div class="col-lg-4 mb-4">
 
+    <!-- MAP -->
     <div class="card">
       <div class="card-header pb-0">
         <h6 class="mb-0">Manzil</h6>
@@ -93,57 +257,37 @@
       </div>
 
       <div class="card-body">
-        <!-- ✅ 100% ishlaydigan xarita: Google Maps iframe -->
-        <div style="height: 420px; border-radius: 12px; overflow: hidden;">
-          <iframe
-            width="100%"
-            height="420"
-            style="border:0;"
-            loading="lazy"
-            allowfullscreen
-            referrerpolicy="no-referrer-when-downgrade"
-            src="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}&z=16&output=embed">
-          </iframe>
-        </div>
+        {% if report.latitude and report.longitude %}
+          <div style="height: 420px; border-radius: 12px; overflow: hidden;">
+            <iframe
+              width="100%"
+              height="420"
+              style="border:0;"
+              loading="lazy"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}&z=16&output=embed">
+            </iframe>
+          </div>
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-3 gap-2">
-
-          <a class="btn btn-sm btn-outline-secondary mb-0"
-             href="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}"
-             target="_blank">
-            Google Maps’da ochish
-          </a>
-        </div>
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-3 gap-2">
+            <a class="btn btn-sm btn-outline-secondary mb-0"
+               href="https://www.google.com/maps?q={{ report.latitude|unlocalize }},{{ report.longitude|unlocalize }}"
+               target="_blank">
+              Google Maps’da ochish
+            </a>
+          </div>
+        {% else %}
+          <div class="alert alert-warning mb-0">
+            Koordinatalar topilmadi. Xarita ko‘rsatib bo‘lmaydi.
+          </div>
+        {% endif %}
       </div>
     </div>
 
 
-    <div class="card mt-4">
-      <div class="card-header pb-0">
-        <h6 class="mb-0">O‘qish tarixi</h6>
-        <p class="text-sm mb-0 text-muted">Tashkilot qachon ochgan</p>
-      </div>
-
-      <div class="card-body">
-        <ul class="list-group">
-          {% for rr in report.reads.all %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-                <b>{{ rr.organization.name }}</b>
-                {% if rr.read_by %} — {{ rr.read_by.username }}{% endif %}
-              </span>
-              <span class="text-xs text-secondary">
-                {{ rr.read_at|date:"d/m/Y" }} {{ rr.read_at|time:"H:i" }}
-              </span>
-            </li>
-          {% empty %}
-            <li class="list-group-item">
-              <span class="text-sm text-muted">Hozircha o‘qish tarixi yo‘q.</span>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
+    <!-- FULL TIMELINE -->
+    
 
   </div>
 
