@@ -25,6 +25,15 @@ from .forms import LoginForm
 
 User = get_user_model()
 
+def custom_404_view(request, exception=None):
+    if not request.user.is_authenticated:
+        return redirect("dashboard:login")
+    if request.user.is_superuser:
+        return redirect("dashboard:home")
+    if getattr(request.user, "user_type", None) == UserChoices.DISPATCHER:
+        return redirect("dashboard:org-dashboard")
+    return redirect("dashboard:home")
+
 
 @require_http_methods(["GET", "POST"])
 def sign_in(request):
@@ -404,7 +413,7 @@ def _status_uz(status: str) -> str:
 @login_required
 def superadmin_dashboard(request):
     if not request.user.is_superuser:
-        raise Http404()
+        return redirect("dashboard:org-dashboard")
 
     # --------- Base queryset (for global stats) ----------
     base_qs = Report.objects.select_related("user", "organization").order_by("-created_at")

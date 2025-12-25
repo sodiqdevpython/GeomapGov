@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    container_name: geomapgov_web
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./media:/app/media
+    env_file:
+      - .env
+    ports:
+      - '8000:8000'
+    restart: always
+
+  bot:
+    build: .
+    container_name: geomapgov_bot
+    command: python bot/main.py
+    env_file:
+      - .env
+    volumes:
+      - ./bot:/app/bot
+    restart: always
