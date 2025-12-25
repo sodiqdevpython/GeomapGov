@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from ..states import Registration
-from ..keyboards import menu_kb
+from ..keyboards import menu_kb, phone_request_kb
 from ..db import BotDB
 from ..api import ApiClient, now_iso, ApiError
 
@@ -46,16 +46,23 @@ async def reg_last_name(message: Message, state: FSMContext):
         return
 
     await state.update_data(last_name=last_name)
-    await message.answer("Telefon raqamingizni kiriting (masalan: +998901234567):")
+    await message.answer(
+        "📱 Telefon raqamingizni yuboring (pastdagi tugmani bosing):",
+        reply_markup=phone_request_kb()
+    )
     await state.set_state(Registration.waiting_phone)
 
 
-@router.message(Registration.waiting_phone, F.text)
-async def reg_phone(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
-    phone_number = (message.text or "").strip().replace(" ", "")
-    if len(phone_number) < 7:
-        await message.answer("Telefon raqam noto‘g‘ri ko‘rinmoqda. Qaytadan kiriting:")
+@router.message(Registration.waiting_phone, F.contact)
+async def reg_phone_contact(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
+    contact = message.contact
+
+    # Faqat o'ziniki bo'lsin (boshqa odam contact yuborsa o‘tmaydi)
+    if not contact or contact.user_id != message.from_user.id:
+        await message.answer("❌ Iltimos, faqat o‘zingizning telefon raqamingizni yuboring.")
         return
+
+    phone_number = (contact.phone_number or "").replace(" ", "")
 
     data = await state.get_data()
     telegram_id = message.from_user.id
@@ -95,3 +102,8 @@ async def reg_phone(message: Message, state: FSMContext, db: BotDB, api: ApiClie
 @router.message(Registration.waiting_phone)
 async def reg_text_only(message: Message):
     await message.answer("Iltimos, matn ko‘rinishida yuboring.")
+
+@router.message(Registration.waiting_phone)
+async def reg_phone_only_button(message: Message):
+    await message.answer("❗ Telefon raqamni faqat pastdagi tugma orqali yuboring.")
+
