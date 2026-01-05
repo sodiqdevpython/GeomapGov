@@ -33,8 +33,10 @@ services:
       - web
     ports:
       - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/geomapgov.conf:/etc/nginx/conf.d/default.conf:ro
       - ./staticfiles:/app/staticfiles:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./media:/app/media:ro
     restart: unless-stopped
