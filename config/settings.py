@@ -187,3 +187,13 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://fastappeal.uz",
+    "https://www.fastappeal.uz",
+    "http://fastappeal.uz",
+    "http://www.fastappeal.uz",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
