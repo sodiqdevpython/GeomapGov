@@ -1,3 +1,4 @@
+from .views import reports_map_view
 from django.urls import path
 from .views import (
     ReportCreateView,
@@ -17,4 +18,5 @@ urlpatterns = [
     path("reports/<uuid:pk>/attachments/", ReportAddAttachmentView.as_view(), name="report-add-attachment"),
     path("reports/<uuid:pk>/resolve/", ReportResolveView.as_view(), name="report-resolve"),
     path("guide/", GuideView.as_view(), name="guide"),
+    path("reports-map/", reports_map_view, name="reports_map"),
 ]

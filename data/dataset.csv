@@ -1,0 +1,51 @@
+id,text,lat,lon,time,category,severity
+1,yo‘lda katta chuqur bor,41.311,69.279,2026-04-01,road,5
+2,yo‘l asfalt buzilgan,41.312,69.280,2026-04-01,road,4
+3,axlat olib ketilmagan,41.320,69.282,2026-04-01,waste,4
+4,chiqindi yig‘ilib qolgan,41.321,69.283,2026-04-02,waste,5
+5,svetofor ishlamayapti,41.315,69.275,2026-04-02,traffic,5
+6,transport tirbandligi kuchli,41.316,69.276,2026-04-02,traffic,4
+7,daraxt kesilib ketgan,41.318,69.270,2026-04-03,ecology,3
+8,yashil hudud qurib qolgan,41.319,69.271,2026-04-03,ecology,4
+9,yo‘l yoritgichi ishlamaydi,41.313,69.278,2026-04-04,road,3
+10,axlat konteyner to‘lib ketgan,41.322,69.284,2026-04-04,waste,5
+11,yo‘lda suv yig‘ilib qolgan,41.314,69.277,2026-04-05,road,4
+12,ko‘cha qorong‘i,41.310,69.276,2026-04-05,road,3
+13,yo‘l belgilari yo‘q,41.309,69.275,2026-04-06,road,3
+14,axlat yonib ketgan,41.323,69.285,2026-04-06,waste,5
+15,svetofor noto‘g‘ri ishlayapti,41.317,69.274,2026-04-07,traffic,4
+16,yo‘lda chuqur ko‘paygan,41.311,69.279,2026-04-07,road,5
+17,transport juda sekin harakatlanmoqda,41.318,69.276,2026-04-08,traffic,4
+18,ko‘chada hid bor,41.324,69.286,2026-04-08,waste,3
+19,daraxtlar qurib qolmoqda,41.320,69.270,2026-04-09,ecology,4
+20,yo‘l qoplamasi yomon,41.312,69.280,2026-04-09,road,4
+21,axlat tashlanib ketilgan,41.325,69.287,2026-04-10,waste,4
+22,svetofor ishlamaydi,41.315,69.275,2026-04-10,traffic,5
+23,yo‘l juda notekis,41.311,69.279,2026-04-11,road,4
+24,ko‘cha ifloslangan,41.326,69.288,2026-04-11,waste,3
+25,yashil hudud kamaymoqda,41.319,69.271,2026-04-12,ecology,4
+26,transport tirbandligi ortdi,41.316,69.276,2026-04-12,traffic,5
+27,yo‘l buzilgan,41.313,69.278,2026-04-13,road,5
+28,axlat to‘planib qolgan,41.327,69.289,2026-04-13,waste,4
+29,svetofor ishlamayapti,41.317,69.274,2026-04-14,traffic,5
+30,yo‘l chetlari buzilgan,41.310,69.276,2026-04-14,road,3
+31,daraxtlar kesilmoqda,41.318,69.270,2026-04-15,ecology,5
+32,axlat olib ketilmagan,41.328,69.290,2026-04-15,waste,4
+33,yo‘l suv ostida qolgan,41.314,69.277,2026-04-16,road,5
+34,transport juda ko‘p,41.318,69.276,2026-04-16,traffic,4
+35,yashil hudud kamaygan,41.319,69.271,2026-04-17,ecology,3
+36,axlat hid tarqatmoqda,41.329,69.291,2026-04-17,waste,4
+37,yo‘l chuqurga to‘la,41.311,69.279,2026-04-18,road,5
+38,svetofor ishlamaydi,41.315,69.275,2026-04-18,traffic,5
+39,transport harakati sust,41.316,69.276,2026-04-19,traffic,3
+40,axlat tashlanib ketgan,41.330,69.292,2026-04-19,waste,4
+41,daraxt qurib qolgan,41.318,69.270,2026-04-20,ecology,3
+42,yo‘l buzilgan,41.313,69.278,2026-04-20,road,4
+43,axlat konteyner to‘lib ketgan,41.331,69.293,2026-04-21,waste,5
+44,svetofor noto‘g‘ri ishlayapti,41.317,69.274,2026-04-21,traffic,4
+45,yo‘l juda yomon,41.310,69.276,2026-04-22,road,5
+46,transport tirbandligi yuqori,41.316,69.276,2026-04-22,traffic,5
+47,yashil hudud qurigan,41.319,69.271,2026-04-23,ecology,4
+48,axlat olib ketilmagan,41.332,69.294,2026-04-23,waste,4
+49,yo‘l chuqurga to‘la,41.311,69.279,2026-04-24,road,5
+50,svetofor ishlamayapti,41.315,69.275,2026-04-24,traffic,5

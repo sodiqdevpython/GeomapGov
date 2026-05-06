@@ -15,7 +15,12 @@ from .serializers import (
 from .permissions import IsOwner
 from users.choices import UserChoices
 
+from reports.map_service import generate_reports_map
+from django.shortcuts import render
 
+def reports_map_view(request):
+    template_name = generate_reports_map()
+    return render(request, template_name)
 
 class ReportCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -145,3 +150,17 @@ class GuideView(APIView):
                 "6) Muammo hal bo‘lgach, murojaatni tanlab: ✅ Hal bo‘ldi tugmasini bosing",
             ]
         })
+
+# from .ai_service import classify_text
+from .ai_service import classify_report_text
+
+def create_report(request):
+    text = request.POST.get("text")
+
+    category_ai = classify_report_text(text)
+
+    Report.objects.create(
+        text=text,
+        category_ai=category_ai,
+        
+    )

@@ -923,3 +923,10 @@ def org_report_detail(request, pk):
         "current_assignments": current_assignments,
     })
 
+from django.shortcuts import render
+from reports.map_service import generate_reports_map
+
+
+def reports_map_view(request):
+    template_name = generate_reports_map()
+    return render(request, template_name)

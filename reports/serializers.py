@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import Report, ReportAttachment
 from organizations.models import Organization
 from .choices import AttachmentType, ReportStatus
+from .ai_service import classify_report_text
 
 
 class ReportAttachmentSerializer(serializers.ModelSerializer):
@@ -19,11 +20,12 @@ class ReportAttachmentSerializer(serializers.ModelSerializer):
         url = obj.file.url
         return request.build_absolute_uri(url) if request else url
 
+from .ai_service import classify_report_text
 
 class ReportSerializer(serializers.ModelSerializer):
     attachments = ReportAttachmentSerializer(many=True, read_only=True)
     organization_name = serializers.CharField(source="organization.name", read_only=True)
-
+    
     class Meta:
         model = Report
         fields = (
@@ -39,6 +41,18 @@ class ReportSerializer(serializers.ModelSerializer):
             "attachments",
         )
         read_only_fields = ("status", "resolved_at", "created_at", "attachments", "organization_name")
+    
+    def create(self, validated_data):
+        text = (
+            validated_data.get("description")
+            or validated_data.get("text")
+            or validated_data.get("title")
+            or ""
+        )
+
+        validated_data["category_ai"] = classify_report_text(text)
+
+        return super().create(validated_data)
 
 
 class ReportCreateSerializer(serializers.ModelSerializer):
