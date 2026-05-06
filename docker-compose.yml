@@ -21,7 +21,7 @@ services:
     container_name: geomapgov_bot
     command: python bot/main.py
     env_file:
-      - .env
+      - ./bot/.env
     volumes:
       - ./bot:/app/bot
     restart: unless-stopped
