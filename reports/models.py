@@ -36,10 +36,30 @@ class Report(BaseModel):
         related_name="reports"
     )
 
+    title = models.CharField(max_length=255)
+
     description = models.TextField()
 
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True
+    )
+
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True
+    )
+
+    category_ai = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="AI aniqlagan kategoriya"
+    )
 
     status = models.CharField(
         max_length=20,
@@ -61,10 +81,6 @@ class Report(BaseModel):
         return f"Report #{self.id} ({self.status})"
 
     def get_status_uz(self) -> str:
-        """
-        Statusni doim O'zbekcha qaytaradi.
-        get_status_display ishlamagan holatlarda ham ishlaydi.
-        """
         mapping = {
             ReportStatus.NEW: "Yangi",
             ReportStatus.SENT: "Tashkilotga yuborildi",
@@ -77,7 +93,6 @@ class Report(BaseModel):
             ReportStatus.REDIRECTED: "Yo‘naltirildi",
         }
         return mapping.get(self.status, str(self.status))
-
 
 # =========================
 # Attachments
@@ -222,3 +237,5 @@ class ReportRejection(models.Model):
 
     def __str__(self):
         return f"Rejected: {self.report_id}"
+    
+# category_ai = models.CharField(max_length=50, null=True, blank=True)

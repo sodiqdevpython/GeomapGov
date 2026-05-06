@@ -86,12 +86,14 @@ class ReportAdmin(admin.ModelAdmin):
         "short_description",
         "location",
         "created_at",
+        "category_ai",
     )
 
     list_filter = (
         "status",
         "organization",
         "created_at",
+        "category_ai",        
     )
 
     search_fields = (
@@ -99,6 +101,7 @@ class ReportAdmin(admin.ModelAdmin):
         "description",
         "user__username",
         "organization__name",
+        "category_ai",
     )
 
     readonly_fields = (

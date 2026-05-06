@@ -11,6 +11,8 @@ from drf_yasg import openapi
 
 from dashboard.views import custom_404_view
 
+from dashboard.views import reports_map_view
+
 schema_view = get_schema_view(
    openapi.Info(
       title="API",
@@ -32,10 +34,13 @@ urlpatterns = [
     path("api/", include("reports.urls")),
     path("api/", include("organizations.urls")),
     path("", include("dashboard.urls")),
+   
     
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc')
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path("reports-map/", reports_map_view, name="reports_map"),
+    
 ]
 
 if settings.DEBUG:
