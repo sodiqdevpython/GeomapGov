@@ -3,11 +3,14 @@ from aiogram.types import (
     KeyboardButton,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
+    WebAppInfo,
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
+
+from .config import get_settings
 
 
 def menu_kb() -> ReplyKeyboardMarkup:
@@ -40,9 +43,13 @@ def media_kb() -> ReplyKeyboardMarkup:
 
 
 def location_kb() -> ReplyKeyboardMarkup:
+    webapp_url = get_settings().webapp_location_url
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📍 Joylashuvni yuborish", request_location=True)],
+            [KeyboardButton(
+                text="🗺 Xaritadan tanlash",
+                web_app=WebAppInfo(url=webapp_url),
+            )],
             [KeyboardButton(text="❌ Bekor qilish")],
         ],
         resize_keyboard=True,

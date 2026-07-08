@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import asyncio
 import aiohttp
@@ -232,7 +233,11 @@ async def report_ask_location(message: Message, state: FSMContext):
     await _touch_ttl(message, state)
 
     await state.set_state(ReportCreate.waiting_location)
-    await message.answer("Muammo joylashuvini yuboring.", reply_markup=location_kb())
+    await message.answer(
+        "🗺 Xaritadan muammo joylashuvini tanlang.\n"
+        "Tugmani bosing va xaritadan kerakli nuqtani belgilang.",
+        reply_markup=location_kb(),
+    )
 
 
 async def _reject_big(message: Message, size: int | None):
@@ -379,6 +384,44 @@ async def report_cancel_location(message: Message, state: FSMContext):
     await message.answer("❌ Murojaat bekor qilindi.", reply_markup=menu_kb())
 
 
+async def _accept_location(message: Message, state: FSMContext, db: BotDB, api: ApiClient, lat: float, lon: float):
+    await state.update_data(latitude=lat, longitude=lon)
+    link = maps_url(lat, lon)
+    await state.set_state(ReportCreate.waiting_organization)
+    await message.answer(
+        f"📍 Joylashuv qabul qilindi: {link}\n\nEndi tashkilotni tanlang:",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await _load_org_page(message, state, db, api, page=1)
+
+
+@router.message(ReportCreate.waiting_location, F.web_app_data)
+async def report_location_from_webapp(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
+    if not await _ensure_not_expired(message, state):
+        return
+    await _touch_ttl(message, state)
+
+    try:
+        payload = json.loads(message.web_app_data.data)
+        lat = float(payload["lat"])
+        lon = float(payload["lon"])
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        await message.answer(
+            "❌ Xaritadan qabul qilingan ma'lumot noto‘g‘ri. Qayta urinib ko‘ring.",
+            reply_markup=location_kb(),
+        )
+        return
+
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        await message.answer(
+            "❌ Koordinatalar noto‘g‘ri. Qayta urinib ko‘ring.",
+            reply_markup=location_kb(),
+        )
+        return
+
+    await _accept_location(message, state, db, api, lat, lon)
+
+
 @router.message(ReportCreate.waiting_location, F.location)
 async def report_after_location_ask_org(message: Message, state: FSMContext, db: BotDB, api: ApiClient):
     if not await _ensure_not_expired(message, state):
@@ -387,17 +430,7 @@ async def report_after_location_ask_org(message: Message, state: FSMContext, db:
 
     lat = float(message.location.latitude)
     lon = float(message.location.longitude)
-    await state.update_data(latitude=lat, longitude=lon)
-
-    link = maps_url(lat, lon) if (lat is not None and lon is not None) else ""
-    await state.set_state(ReportCreate.waiting_organization)
-
-    await message.answer(
-        f"📍 Joylashuv qabul qilindi: {link}\n\nEndi tashkilotni tanlang:",
-        reply_markup=ReplyKeyboardRemove()
-    )
-
-    await _load_org_page(message, state, db, api, page=1)
+    await _accept_location(message, state, db, api, lat, lon)
 
 
 @router.callback_query(ReportCreate.waiting_organization, OrgCb.filter())
