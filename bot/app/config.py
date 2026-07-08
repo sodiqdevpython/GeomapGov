@@ -8,14 +8,23 @@ load_dotenv()
 class Settings:
     bot_token: str
     api_base_url: str
+    webapp_location_url: str
 
 def get_settings() -> Settings:
     bot_token = os.getenv("BOT_TOKEN", "").strip()
     api_base_url = os.getenv("API_BASE_URL", "").strip().rstrip("/")
+    webapp_location_url = os.getenv(
+        "WEBAPP_LOCATION_URL",
+        "https://fastappeal.uz/webapp/location-picker/",
+    ).strip()
 
     if not bot_token:
         raise RuntimeError("BOT_TOKEN topilmadi (.env ni tekshir).")
     if not api_base_url:
         raise RuntimeError("API_BASE_URL topilmadi (.env ni tekshir).")
 
-    return Settings(bot_token=bot_token, api_base_url=api_base_url)
+    return Settings(
+        bot_token=bot_token,
+        api_base_url=api_base_url,
+        webapp_location_url=webapp_location_url,
+    )

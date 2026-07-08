@@ -12,6 +12,7 @@ from drf_yasg import openapi
 from dashboard.views import custom_404_view
 
 from dashboard.views import reports_map_view
+from django.views.generic import TemplateView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -40,7 +41,12 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("reports-map/", reports_map_view, name="reports_map"),
-    
+    path(
+        "webapp/location-picker/",
+        TemplateView.as_view(template_name="webapp/location_picker.html"),
+        name="webapp_location_picker",
+    ),
+
 ]
 
 if settings.DEBUG:
